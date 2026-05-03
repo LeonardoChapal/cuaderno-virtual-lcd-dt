@@ -6,7 +6,7 @@
 
 ## 🔗 Ver sitio
 
-🌐 [cuaderno-virtual-dt](https://wilmerbotina132.github.io/cuaderno-virtual-dt)
+🌐 [cuaderno-virtual-dt (Aun no disponible)]()
 
 ---
 
@@ -58,7 +58,7 @@
 
 ```bash
 # Clonar el repositorio
-git clone https://github.com/WilmerBotina132/cuaderno-virtual-dt.git
+git clone https://github.com/LeonardoChapal/cuaderno-virtual-lcd-dt.git
 cd cuaderno-virtual-dt
 
 # Instalar dependencias
@@ -74,11 +74,11 @@ Abre [http://localhost:3000](http://localhost:3000) en tu navegador.
 
 ## 👤 Autor 
 
-**Wilmer Andrey Botina Ortiz**  
+**Leonardo Chapal Díaz**  
 Estudiante de la especialidad de Dibujo Técnico
 
-- 🐙 [GitHub](https://github.com/WilmerBotina132)
-- 💬 WhatsApp: +57 318 535 4454
+- 🐙 [GitHub](https://github.com/LeonardoChapal)
+- 💬 WhatsApp: +57 319 310 6380
 
 ---
 
