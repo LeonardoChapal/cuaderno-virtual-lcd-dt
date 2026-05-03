@@ -36,7 +36,7 @@ export default function Footer() {
                 </div>
 
                 <div className={styles.bottom}>
-                    <p>&copy; {currentYear} Wilmer Andrey Botina Ortiz. Todos los derechos reservados.</p>
+                    <p>&copy; {currentYear} Leonardo Chapal Díaz. Todos los derechos reservados.</p>
                 </div>
             </div>
         </footer>
