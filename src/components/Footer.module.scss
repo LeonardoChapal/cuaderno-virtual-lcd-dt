@@ -1,0 +1,106 @@
+@import '../styles/variables';
+@import '../styles/mixins';
+
+.footer {
+    background: linear-gradient(135deg, #0f172a 0%, #134e4a 100%);
+    color: white;
+    margin-top: auto;
+    padding: $spacing-3xl 0 $spacing-lg;
+    position: relative;
+    overflow: hidden;
+
+    &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, $primary-color, $secondary-color, $primary-color);
+        background-size: 200% 100%;
+        animation: shimmer 6s linear infinite;
+    }
+}
+
+@keyframes shimmer {
+    0% { background-position: 0% 0; }
+    100% { background-position: 200% 0; }
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 $spacing-lg;
+    position: relative;
+    z-index: 1;
+}
+
+.content {
+    @include grid(1, $spacing-xl);
+    margin-bottom: $spacing-xl;
+
+    @include respond-to('md') {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+.section {
+    h3 {
+        color: white;
+        font-size: $font-size-xl;
+        margin-bottom: $spacing-md;
+    }
+
+    h4 {
+        color: $primary-light;
+        font-size: $font-size-lg;
+        margin-bottom: $spacing-sm;
+    }
+
+    p {
+        color: rgba(255, 255, 255, 0.7);
+        line-height: 1.6;
+    }
+}
+
+.links {
+    @include flex(column, flex-start, flex-start);
+    gap: $spacing-sm;
+
+    a {
+        color: rgba(255, 255, 255, 0.7);
+        transition: color 0.2s ease, transform 0.2s ease;
+        display: inline-block;
+
+        &:hover {
+            color: $primary-light;
+            transform: translateX(4px);
+        }
+    }
+}
+
+.social {
+    @include flex(row, flex-start, center);
+    gap: $spacing-md;
+
+    a {
+        color: rgba(255, 255, 255, 0.7);
+        transition: color 0.3s ease, transform 0.3s ease;
+
+        &:hover {
+            color: $primary-light;
+            transform: translateY(-2px);
+        }
+    }
+}
+
+.bottom {
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding-top: $spacing-lg;
+    text-align: center;
+
+    p {
+        color: rgba(255, 255, 255, 0.5);
+        font-size: $font-size-sm;
+    }
+}

@@ -1,0 +1,58 @@
+// Variables de colores - Paleta verde / turquesa
+$primary-color: #0d9488;        // Teal 600
+$primary-hover: #0f766e;        // Teal 700
+$primary-light: #5eead4;        // Teal 300
+$secondary-color: #10b981;      // Emerald 500
+$accent-color: #14b8a6;         // Teal 500
+
+$text-primary: #0f172a;         // Slate 900
+$text-secondary: #475569;       // Slate 600
+$text-light: #94a3b8;           // Slate 400
+
+$background-light: #ffffff;
+$background-gray: #f8fafc;      // Slate 50
+$background-tint: #f0fdfa;      // Teal 50 (muy suave)
+$border-color: #e2e8f0;         // Slate 200
+
+// Tipografía
+$font-family-base: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+$font-family-heading: 'Georgia', serif;
+
+$font-size-xs: 0.75rem;
+$font-size-sm: 0.875rem;
+$font-size-base: 1rem;
+$font-size-lg: 1.125rem;
+$font-size-xl: 1.25rem;
+$font-size-2xl: 1.5rem;
+$font-size-3xl: 1.875rem;
+$font-size-4xl: 2.25rem;
+
+// Espaciados
+$spacing-xs: 0.25rem;
+$spacing-sm: 0.5rem;
+$spacing-md: 1rem;
+$spacing-lg: 1.5rem;
+$spacing-xl: 2rem;
+$spacing-2xl: 3rem;
+$spacing-3xl: 4rem;
+
+// Breakpoints responsive
+$breakpoint-sm: 640px;
+$breakpoint-md: 768px;
+$breakpoint-lg: 1024px;
+$breakpoint-xl: 1280px;
+
+// Border radius
+$radius-sm: 0.25rem;
+$radius-md: 0.5rem;
+$radius-lg: 1rem;
+
+// Sombras (con tinte verde sutil)
+$shadow-sm: 0 1px 2px 0 rgba(13, 148, 136, 0.05);
+$shadow-md: 0 4px 6px -1px rgba(13, 148, 136, 0.1);
+$shadow-lg: 0 10px 25px -5px rgba(13, 148, 136, 0.15);
+
+// Transiciones
+$transition-fast: 150ms ease-in-out;
+$transition-base: 300ms ease-in-out;
+$transition-slow: 500ms ease-in-out;

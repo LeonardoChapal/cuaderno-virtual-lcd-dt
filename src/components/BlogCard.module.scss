@@ -1,0 +1,195 @@
+@import '../styles/variables';
+@import '../styles/mixins';
+
+.card {
+    background-color: white;
+    border-radius: $radius-lg;
+    box-shadow: $shadow-sm;
+    border: 1px solid $border-color;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+    position: relative;
+
+    &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, $primary-color, $secondary-color);
+        transform: scaleX(0);
+        transform-origin: left;
+        transition: transform 0.3s ease;
+    }
+
+    &:hover {
+        transform: translateY(-6px);
+        box-shadow: $shadow-lg;
+        border-color: $primary-light;
+
+        &::before {
+            transform: scaleX(1);
+        }
+
+        .image {
+            transform: scale(1.05);
+        }
+
+        .arrow {
+            transform: translateX(6px);
+        }
+    }
+}
+
+// Variantes por categoría
+.cardFundamentacion {
+    background: linear-gradient(180deg, white 0%, #f0fdfa 100%);
+
+    .category {
+        background: linear-gradient(135deg, #0d9488, #14b8a6);
+    }
+}
+
+.cardDiseno {
+    background: linear-gradient(180deg, white 0%, #ecfdf5 100%);
+
+    .category {
+        background: linear-gradient(135deg, #10b981, #34d399);
+    }
+}
+
+.imageWrapper {
+    position: relative;
+    width: 100%;
+    height: 180px;
+    overflow: hidden;
+    background-color: $background-tint;
+}
+
+.image {
+    object-fit: cover;
+    transition: transform 0.4s ease;
+}
+
+.body {
+    padding: $spacing-lg;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+.header {
+    @include flex(row, space-between, center);
+    margin-bottom: $spacing-md;
+    gap: 0.5rem;
+}
+
+.category {
+    background: linear-gradient(135deg, $primary-color, $secondary-color);
+    color: white;
+    padding: 0.3rem 0.7rem;
+    border-radius: 999px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    box-shadow: 0 2px 4px rgba(13, 148, 136, 0.2);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.categoryIcon {
+    font-size: 0.9rem;
+    line-height: 1;
+}
+
+.readTime {
+    color: $text-light;
+    font-size: $font-size-sm;
+    white-space: nowrap;
+}
+
+.title {
+    margin-bottom: $spacing-md;
+
+    a {
+        color: $text-primary;
+        font-size: $font-size-xl;
+        font-weight: 700;
+        @include transition(color);
+
+        &:hover {
+            color: $primary-color;
+        }
+    }
+}
+
+.excerpt {
+    color: $text-secondary;
+    line-height: 1.6;
+    margin-bottom: $spacing-md;
+    flex: 1;
+    @include line-clamp(3);
+}
+
+.tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-bottom: $spacing-md;
+}
+
+.tag {
+    background-color: $background-tint;
+    color: $primary-color;
+    font-size: $font-size-xs;
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    font-weight: 500;
+}
+
+.footer {
+    @include flex(row, space-between, center);
+    padding-top: $spacing-md;
+    border-top: 1px solid $border-color;
+    margin-top: auto;
+}
+
+.meta {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.date {
+    color: $text-light;
+    font-size: $font-size-sm;
+}
+
+.author {
+    color: $text-light;
+    font-size: $font-size-sm;
+}
+
+.readMore {
+    color: $primary-color;
+    font-weight: 600;
+    font-size: $font-size-sm;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    transition: color 0.2s ease;
+
+    &:hover {
+        color: $primary-hover;
+    }
+}
+
+.arrow {
+    display: inline-block;
+    transition: transform 0.3s ease;
+}

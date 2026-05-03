@@ -1,0 +1,90 @@
+.wrapper {
+    width: 100%;
+    max-width: 600px;
+    margin: 0 auto;
+    aspect-ratio: 1;
+}
+
+.svg {
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+}
+
+// Vista frontal — primera en aparecer
+.frontView {
+    stroke-dasharray: 1500;
+    stroke-dashoffset: 1500;
+    animation: draw 2.2s ease-out 0.2s forwards;
+}
+
+.hatchFront {
+    opacity: 0;
+    animation: fadeIn 0.6s ease-out 2s forwards;
+}
+
+.dim1 {
+    opacity: 0;
+    animation: fadeIn 0.5s ease-out 2.4s forwards;
+}
+
+// Vista lateral — segunda
+.sideView {
+    stroke-dasharray: 1100;
+    stroke-dashoffset: 1100;
+    animation: draw 2.2s ease-out 3s forwards;
+}
+
+.dim2 {
+    opacity: 0;
+    animation: fadeIn 0.5s ease-out 5.2s forwards;
+}
+
+// Vista superior — tercera
+.topView {
+    stroke-dasharray: 900;
+    stroke-dashoffset: 900;
+    animation: draw 2s ease-out 5.8s forwards;
+}
+
+.dim3 {
+    opacity: 0;
+    animation: fadeIn 0.5s ease-out 7.8s forwards;
+}
+
+// Vista isométrica — cuarta
+.isoView {
+    stroke-dasharray: 1000;
+    stroke-dashoffset: 1000;
+    animation: draw 2.5s ease-out 8.4s forwards;
+}
+
+// Etiquetas
+.label {
+    opacity: 0;
+    animation: fadeIn 0.6s ease-out 10.5s forwards;
+}
+
+// Cajetín
+.titleBlockGroup {
+    stroke-dasharray: 1300;
+    stroke-dashoffset: 1300;
+    animation: draw 1.8s ease-out 11s forwards;
+
+    text {
+        opacity: 0;
+        animation: fadeIn 0.5s ease-out 12.2s forwards;
+    }
+}
+
+@keyframes draw {
+    to {
+        stroke-dashoffset: 0;
+    }
+}
+
+@keyframes fadeIn {
+    to {
+        opacity: 1;
+    }
+}

@@ -1,0 +1,101 @@
+.blogPage {
+    padding: 2rem 0 4rem;
+}
+
+.header {
+    margin-bottom: 2rem;
+
+    h1 {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        position: relative;
+        display: inline-block;
+        padding-bottom: 0.5rem;
+
+        &::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 60px;
+            height: 3px;
+            background: linear-gradient(90deg, #0d9488, #10b981);
+            border-radius: 2px;
+        }
+    }
+
+    p {
+        color: #475569;
+        margin-top: 0.5rem;
+    }
+}
+
+.filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 2rem;
+}
+
+.filterBtn {
+    padding: 0.4rem 1rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 999px;
+    background: white;
+    font-size: 0.875rem;
+    cursor: pointer;
+    color: #475569;
+    transition: all 0.25s ease;
+
+    &:hover {
+        border-color: #0d9488;
+        color: #0d9488;
+        transform: translateY(-1px);
+    }
+
+    &.active {
+        background: linear-gradient(135deg, #0d9488, #10b981);
+        border-color: transparent;
+        color: white;
+        box-shadow: 0 4px 12px rgba(13, 148, 136, 0.25);
+    }
+}
+
+.postsGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2.5rem;
+}
+
+.pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1.5rem;
+    font-size: 0.9rem;
+    color: #475569;
+}
+
+.pageBtn {
+    padding: 0.5rem 1.25rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    background: white;
+    cursor: pointer;
+    font-size: 0.9rem;
+    color: #475569;
+    transition: all 0.25s ease;
+
+    &:hover:not(:disabled) {
+        border-color: #0d9488;
+        color: #0d9488;
+        transform: translateY(-1px);
+    }
+
+    &:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+    }
+}
