@@ -25,10 +25,10 @@ export default function Footer() {
                     <div className={styles.section}>
                         <h4>Contacto</h4>
                         <div className={styles.social}>
-                            <a href="https://github.com/WilmerBotina132" target="_blank" rel="noopener noreferrer">
+                            <a href="https://github.com/LeonardoChapal" target="_blank" rel="noopener noreferrer">
                                 GitHub
                             </a>
-                            <a href="https://wa.me/57XXXXXXXXXX" target="_blank" rel="noopener noreferrer">
+                            <a href="https://wa.me/573193106380" target="_blank" rel="noopener noreferrer">
                                 WhatsApp
                             </a>
                         </div>
