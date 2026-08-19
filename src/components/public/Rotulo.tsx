@@ -2,23 +2,21 @@ import Link from "next/link";
 
 import { SECTIONS, site } from "@/lib/site";
 
-type Cell = { label: string; value: string; wide?: boolean };
+type Cell = { label: string; value: string };
 
 /**
  * El rótulo (title block). Es la pieza estructural que identifica cualquier
- * plano técnico, así que aquí hace de pie de página: mismas celdas, mismos
- * campos — institución, quién dibujó, escala, fecha y número de lámina.
+ * plano técnico, así que aquí hace de pie de página con los campos que sí
+ * informan algo en una web: institución, autor, curso y asignatura.
  */
 export default function Rotulo() {
   const year = new Date().getFullYear();
 
   const cells: Cell[] = [
-    { label: "Institución", value: site.school, wide: true },
+    { label: "Institución", value: site.school },
     { label: "Dibujó", value: site.author },
     { label: "Curso", value: site.course },
-    { label: "Asignatura", value: site.subject, wide: true },
-    { label: "Escala", value: "S/E" },
-    { label: "Lámina", value: `01 / ${String(SECTIONS.length).padStart(2, "0")}` },
+    { label: "Asignatura", value: site.subject },
   ];
 
   return (
@@ -71,9 +69,7 @@ export default function Rotulo() {
           {cells.map((cell) => (
             <div
               key={cell.label}
-              className={`border-b border-r border-blueline/30 px-4 py-3 last:border-r-0 ${
-                cell.wide ? "col-span-2" : ""
-              }`}
+              className="border-b border-r border-blueline/30 px-4 py-3 last:border-r-0"
             >
               <p className="tag mb-1.5 text-blueline">{cell.label}</p>
               <p className="font-display text-sm uppercase tracking-wide text-chalk">
