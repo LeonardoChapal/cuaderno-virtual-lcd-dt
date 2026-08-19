@@ -1,26 +1,238 @@
 @import "tailwindcss";
 
+/* ==========================================================================
+   CUADERNO VIRTUAL — sistema visual "cianotipo"
+   Referencia: un plano técnico real. Fondo azul de Prusia (el color de una
+   cianotipia), retícula milimetrada, líneas de cota, y el rótulo como pieza
+   estructural. Regla del sistema: NO hay sombras — en proyección ortogonal
+   no existen. La profundidad se construye con grosor de línea y valor.
+   ========================================================================== */
+
+@theme {
+  /* --- Tinta y papel --------------------------------------------------- */
+  --color-ferro: #06121f; /* fondo: cianotipia más profunda        */
+  --color-prussian: #0c2038; /* panel elevado                          */
+  --color-prussian-2: #102a48; /* panel sobre panel                      */
+  --color-blueline: #2e6e9e; /* línea estructural media                */
+  --color-cyan: #5fd3f3; /* traza activa / hover                   */
+  --color-chalk: #e8f1f8; /* tinta blanca sobre el azul             */
+  --color-graphite: #8aa6bc; /* texto secundario                       */
+  --color-amber: #ffa724; /* línea de corte / acento cálido         */
+  --color-amber-deep: #c97a06;
+
+  /* --- Tipografía ------------------------------------------------------ */
+  --font-display: var(--font-archivo-narrow), "Arial Narrow", sans-serif;
+  --font-body: var(--font-plex-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, "Courier New", monospace;
+
+  /* --- Grosores de línea (equivalentes a plumillas) -------------------- */
+  --line-thin: 1px; /* 0,25 mm — retícula, detalles      */
+  --line-base: 1px; /* 0,50 mm — contornos, bordes       */
+  --line-bold: 2px; /* 0,70 mm — énfasis, línea de corte */
+
+  /* --- Retícula -------------------------------------------------------- */
+  --grid-minor: 12px;
+  --grid-major: 60px;
+
+  --ease-draft: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* --------------------------------------------------------------------------
+   Base
+   -------------------------------------------------------------------------- */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  color-scheme: dark;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--color-ferro);
+  color: var(--color-chalk);
+  font-family: var(--font-body);
+  font-size: 1rem;
+  line-height: 1.65;
+  min-height: 100dvh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--color-amber);
+  color: var(--color-ferro);
+}
+
+:focus-visible {
+  outline: var(--line-bold) solid var(--color-amber);
+  outline-offset: 3px;
+}
+
+/* --------------------------------------------------------------------------
+   Papel milimetrado — retícula de dos escalas, como en papel de dibujo
+   -------------------------------------------------------------------------- */
+
+@utility grid-paper {
+  background-image:
+    linear-gradient(
+      to right,
+      color-mix(in oklab, var(--color-blueline) 14%, transparent) var(--line-thin),
+      transparent var(--line-thin)
+    ),
+    linear-gradient(
+      to bottom,
+      color-mix(in oklab, var(--color-blueline) 14%, transparent) var(--line-thin),
+      transparent var(--line-thin)
+    ),
+    linear-gradient(
+      to right,
+      color-mix(in oklab, var(--color-blueline) 6%, transparent) var(--line-thin),
+      transparent var(--line-thin)
+    ),
+    linear-gradient(
+      to bottom,
+      color-mix(in oklab, var(--color-blueline) 6%, transparent) var(--line-thin),
+      transparent var(--line-thin)
+    );
+  background-size:
+    var(--grid-major) var(--grid-major),
+    var(--grid-major) var(--grid-major),
+    var(--grid-minor) var(--grid-minor),
+    var(--grid-minor) var(--grid-minor);
+}
+
+/* Retícula isométrica: para las zonas de "perspectiva". */
+@utility grid-iso {
+  background-image:
+    repeating-linear-gradient(
+      60deg,
+      color-mix(in oklab, var(--color-blueline) 12%, transparent) 0 var(--line-thin),
+      transparent var(--line-thin) 22px
+    ),
+    repeating-linear-gradient(
+      -60deg,
+      color-mix(in oklab, var(--color-blueline) 12%, transparent) 0 var(--line-thin),
+      transparent var(--line-thin) 22px
+    );
+}
+
+/* --------------------------------------------------------------------------
+   Tipografía de lámina
+   -------------------------------------------------------------------------- */
+
+@utility lettering {
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 700;
+  line-height: 1.02;
+}
+
+/* Etiqueta técnica: códigos, cotas, metadatos. */
+@utility tag {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  line-height: 1;
+}
+
+/* --------------------------------------------------------------------------
+   Marco de lámina — ticks en las esquinas y marcas de centrado en los bordes
+   -------------------------------------------------------------------------- */
+
+@utility sheet-frame {
+  position: relative;
+  border: var(--line-base) solid
+    color-mix(in oklab, var(--color-blueline) 45%, transparent);
+}
+
+/* --------------------------------------------------------------------------
+   Animaciones
+   -------------------------------------------------------------------------- */
+
+@keyframes trace-in {
+  from {
+    stroke-dashoffset: var(--dash, 1200);
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes axis-x {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes axis-y {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+
+@keyframes fade-rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes sweep {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes blink-tick {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@utility animate-fade-rise {
+  animation: fade-rise 0.6s var(--ease-draft) both;
+}
+
+/* --------------------------------------------------------------------------
+   Accesibilidad: si se pide menos movimiento, todo aparece ya "dibujado"
+   -------------------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  [data-draw] {
+    stroke-dashoffset: 0 !important;
+  }
 }

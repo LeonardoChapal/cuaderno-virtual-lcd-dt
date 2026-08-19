@@ -1,40 +1,68 @@
-import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-import "./globals.scss";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
+import type { Metadata, Viewport } from "next";
+import { Archivo_Narrow, IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+import { site } from "@/lib/site";
+
+import "./globals.css";
+
+/** Lettering de lámina: condensada, monolineal, de linaje DIN. */
+const archivoNarrow = Archivo_Narrow({
+  variable: "--font-archivo-narrow",
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  display: "swap",
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+/** Texto corrido: Plex fue diseñada para contextos técnicos y de ingeniería. */
+const plexSans = IBM_Plex_Sans({
+  variable: "--font-plex-sans",
   subsets: ["latin"],
+  weight: ["300", "400", "500", "600"],
+  display: "swap",
+});
+
+/** Datos técnicos: códigos de lámina, cotas, escalas, fechas. */
+const plexMono = IBM_Plex_Mono({
+  variable: "--font-plex-mono",
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
-  title: "Cuaderno Virtual | Dibujo Técnico",
-  description: "Apuntes, planchas, ejercicios e investigaciones de la especialidad de Dibujo Técnico — ITSIM, Pasto.",
+  title: {
+    default: `${site.name} · ${site.subject}`,
+    template: `%s · ${site.name}`,
+  },
+  description: `Planos, consultas y videos de apoyo de ${site.subject}. ${site.school} — ${site.author}, ${site.course}.`,
+  authors: [{ name: site.author }],
+  openGraph: {
+    title: `${site.name} · ${site.subject}`,
+    description: `Cuaderno virtual de ${site.subject} — ${site.school}.`,
+    locale: "es_CO",
+    type: "website",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#06121f",
+  width: "device-width",
+  initialScale: 1,
 };
 
 export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+}: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="es">
       <body
-        className={`${geistSans.variable} ${geistMono.variable}`}
-        style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}
+        className={`${archivoNarrow.variable} ${plexSans.variable} ${plexMono.variable} antialiased`}
       >
-        <Header />
-        <main style={{ flex: 1 }}>
-          {children}
-        </main>
-        <Footer />
+        {children}
       </body>
     </html>
   );
