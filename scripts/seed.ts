@@ -5,6 +5,7 @@ import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/neon-http";
 
 import { users } from "../src/db/schema";
+import { assertSafeDatabase } from "../src/lib/db-guard";
 import { hashPassword } from "../src/lib/password";
 
 /**
@@ -23,6 +24,8 @@ async function main() {
       "Falta DATABASE_URL. Copia .env.example a .env.local y pon la cadena de Neon.",
     );
   }
+
+  assertSafeDatabase();
 
   const username = process.env.ADMIN_USERNAME?.trim() || "admin";
   const password = process.env.ADMIN_PASSWORD;

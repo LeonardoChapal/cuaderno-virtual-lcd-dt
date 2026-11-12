@@ -1,6 +1,7 @@
 import { neon } from "@neondatabase/serverless";
 import { drizzle } from "drizzle-orm/neon-http";
 
+import { assertSafeDatabase } from "../lib/db-guard";
 import * as schema from "./schema";
 
 /**
@@ -14,6 +15,8 @@ export const isDatabaseConfigured = Boolean(process.env.DATABASE_URL);
 type Database = ReturnType<typeof createClient>;
 
 function createClient() {
+  // Fuera de Vercel, aborta si el host no es el de la rama de desarrollo.
+  assertSafeDatabase();
   const url = process.env.DATABASE_URL;
   if (!url) {
     throw new Error(
@@ -34,6 +37,8 @@ export function getDb(): Database {
 /** Cliente Drizzle o `null` si aún no hay base de datos configurada. */
 export function tryGetDb(): Database | null {
   if (!isDatabaseConfigured) return null;
+  // La guarda va fuera del try: si falla, no debe degradar en silencio.
+  assertSafeDatabase();
   try {
     return getDb();
   } catch {
