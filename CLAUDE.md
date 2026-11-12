@@ -125,17 +125,18 @@ Estas reglas ganan sobre cualquier otra instrucción, incluida una mía en el ch
 
 ## 6. Lo que ya existe (estado actual)
 
-Todo esto viene del plan original. **Verifícalo en la Fase 0** y corrige esta sección con la realidad.
+Verificado en la Fase 0 (2026-11-12). Detalle en `docs/HALLAZGOS.md`.
 
-- ❓ Next.js (App Router) + TypeScript + Tailwind CSS v4 + SCSS Modules + Framer Motion.
-- ❓ Sin `output: 'export'` (se quitó al pasar a Vercel).
-- ORM: **Drizzle** (hay carpeta `drizzle/` y `drizzle.config.ts`), conectado a Neon. ❓ Confirma versión y cómo se corren las migraciones.
-- ❓ Autenticación: Auth.js / NextAuth con credenciales; usuario `admin`; contraseña desde variable de entorno y guardada hasheada.
-- ❓ Rutas: `/` redirige a `/home`; `/home` pública; `/login` oculta; `/admin` (o `/admin/posts`) protegida, redirige a `/login` sin sesión.
-- ❓ Archivos en Vercel Blob; en Postgres solo metadatos y URLs.
-- ❓ Las dos páginas de Planos reutilizan el mismo componente con distinta lista de datos.
-- ❓ Puede quedar contenido viejo en `src/data` de la versión estática: averigua si todavía se usa o si es código muerto.
-- ❓ El encabezado o pie muestra "I.E.M Técnico Industrial" y el nombre del autor. **No cambies el nombre del autor** que haya en el código; pregúntame si hace falta tocarlo.
+- Next.js 16.3.1 (App Router) + React 19.2.3 + TypeScript + Tailwind CSS 4.1.18. **No hay SCSS.** `motion` 13 está declarado pero sin uso.
+- Sin `output: 'export'` ni restos de GitHub Pages.
+- ORM: **Drizzle** 0.45.2 / drizzle-kit 0.31.10 con `@neondatabase/serverless` (neon-http). Una sola migración (`drizzle/0000_wet_sentinels.sql`). Producción se creó con `db:push`; `db:push` se eliminó y existe `db:migrate`.
+- Auth.js (next-auth 5.0.0-beta.32), Credentials, sesión JWT 8 h; usuario `admin`; contraseña hasheada (bcrypt) en BD vía `npm run db:seed`.
+- Rutas: `/` → `/home`; `/[section]`, `/[section]/{videos,consultas,planos}`, `/[section]/planos/[plano]`; `/login` oculta; `/admin/**` protegida (proxy `src/proxy.ts` + layout + cada acción + `/api/upload`).
+- Archivos en Vercel Blob (client upload, `@vercel/blob` 2.8.0). **El código no borra blobs** (no hay `del()`).
+- Las dos páginas de Planos usan el mismo `PlanosIndex`.
+- `src/data` no existe (no hay código muerto de la versión estática).
+- Institución y autor viven en `src/lib/site.ts`. **No cambies el nombre del autor**; pregúntame si hace falta tocarlo.
+- Guarda de BD: `src/lib/db-guard.ts` (ver `docs/DECISIONES.md` D-001). En local exige `DB_EXPECTED_HOST`.
 
 ---
 
@@ -217,28 +218,34 @@ Si en la auditoría encuentras algo más urgente (un bug, un hueco de seguridad)
 
 ## 11. Modelo de datos
 
-Esquema esperado (❓ verificar en el schema de Drizzle, probablemente en `src/` o `src/db/`; **el real gana**):
+Esquema real (`src/db/schema.ts`, verificado 2026-11-12):
 
-- **Usuario administrador:** usuario, hash de contraseña.
-- **Post:** id, título, descripción, sección (Diseño Aplicado / Fundamentación Tecnológica), subcategoría (Videos de apoyo / Consultas / Planos), ítem de Planos (cuando aplique), tipo(s) de contenido (video subido, YouTube, foto, link), URLs de archivos en Blob, links externos, fechas de creación y edición.
+- **`users`:** id (uuid), `username` (único), `password_hash`, `name`, `created_at`.
+- **`posts`:** id (uuid), `title`, `slug` (único), `summary`, `body`, `section`, `subsection`, `plano_slug`, **`published`** (bool, default true), **`position`** (int, default 0), `created_at`, `updated_at`.
+- **`post_media`:** id, `post_id` (FK cascade), `type` (`video_upload`/`youtube`/`image`/`link`), `url`, `label`, `file_name`, `file_size`, `position`, `created_at`.
 
-Cambios previstos (solo aditivos, §3):
-- `order` (entero, con un default que **conserve el orden actual**; por ejemplo, rellenado según la fecha de creación).
-- `status` (enum borrador/publicado, **default publicado**).
+`position` y `published` **ya existen y ya se usan** en el sitio y el panel. M3 (arrastrar) es solo interfaz y M4 ya está implementado como checkbox; solo habría migración si se quisiera un `status` de más estados (aditivo, §3).
 
 ---
 
 ## 12. Estructura de carpetas
 
-❓ Documenta la estructura real en la Fase 0. Se suman:
-
 ```
 docs/
   HALLAZGOS.md
   DECISIONES.md
-  PLAN.md          (sale de la Fase 1)
+  PLAN.md                   (sale de la Fase 1)
+drizzle/                    migraciones (0000 + meta/)
 scripts/
-  conteo-datos.ts  (solo lectura, §14)
+  seed.ts                   crea/actualiza el admin
+  conteo-datos.ts           solo lectura, §14
+  verificar-migraciones.ts  solo lectura, estado de migraciones
+src/
+  app/                      (public)/, admin/, api/, login/, layout, page
+  components/{admin,public}/
+  db/                       index.ts (cliente), schema.ts
+  lib/                      db-guard, load-env, password, posts, site, slug, youtube
+  auth.ts, auth.config.ts, proxy.ts
 ```
 
 ---
@@ -322,14 +329,14 @@ Cada fase empieza en **plan mode** y espera mi aprobación. 🔎 = revisor indep
 
 ## 16. Preguntas abiertas para la Fase 0
 
-1. ¿El stack real coincide con §6? ¿Qué versiones de Next.js, Auth.js, Drizzle y `@vercel/blob` hay?
-2. ¿Dónde se guardan los archivos (Blob u otro)? ¿El código borra el archivo al eliminar un post?
-3. ¿Cómo es el esquema real? ¿Ya existe algún campo de orden o estado?
-4. ¿La protección de `/admin` se hace en middleware, en el layout, en cada acción, o en varios?
-5. ¿`src/data` se sigue usando?
-6. ¿`main` despliega automáticamente a producción en Vercel?
-7. ¿Las planchas son imágenes, PDFs o ambos?
-8. ¿Cuántos posts y archivos hay (conteo base)?
+1. ✅ Stack: ver §6 (Next 16.3.1, next-auth 5.0.0-beta.32, Drizzle 0.45.2, `@vercel/blob` 2.8.0).
+2. ✅ Blob (client upload). El código **no** borra archivos al eliminar un post.
+3. ✅ Ya existen `position` y `published` en `posts` (§11).
+4. ✅ Proxy + layout + cada acción + `/api/upload`.
+5. ✅ `src/data` no existe.
+6. ❓ Pendiente: confirmar en Vercel la Production Branch (¿`main`?).
+7. ✅ Solo imágenes y videos; no hay PDFs.
+8. ❓ Pendiente: conteo base (requiere `.env.local` con la rama de Neon). Ver `docs/HALLAZGOS.md`.
 
 ---
 
