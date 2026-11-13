@@ -25,3 +25,10 @@ Decisiones de arquitectura numeradas, con el porqué y las alternativas descarta
 ## D-005 — Script de baseline de migraciones (2026-11-12)
 **Decisión:** `scripts/baseline-migraciones.ts` crea `drizzle.__drizzle_migrations` y registra `0000` como aplicada (hash sha256 del .sql y `when` del journal). Es aditivo e idempotente y pasa por la guarda de BD.
 **Por qué:** la base se creó con `push` y `drizzle-kit migrate` fallaría al re-ejecutar `0000`. **Descartado:** editar `0000` (prohibido, §3.2).
+
+## D-006 — Visor de planchas con yet-another-react-lightbox (2026-11-12)
+**Decisión:** el visor de planchas (M1) usa `yet-another-react-lightbox` 3.33.0 con los plugins `Zoom` y `Download`. Vive en `src/components/public/ImageLightbox.tsx` y se carga bajo demanda (`next/dynamic`, `ssr: false`) desde `PostImages.tsx`, así que no pesa en la carga inicial. Zoom hasta 4× los píxeles reales (rueda, doble clic o pellizco), paneo arrastrando, navegación entre planchas y descarga. Las miniaturas siguen siendo enlaces reales a la imagen (clic central o abrir en pestaña nueva funcionan).
+**Por qué:** zoom y paneo con gestos táctiles bien hechos (pellizco, inercia, límites del encuadre) son mucho código y fuente de bugs para escribir a mano. La librería es MIT, sin dependencias de runtime, compatible con React 19 y accesible (foco atrapado, teclado, ARIA). Las planchas tienen líneas finas, así que el zoom alto importa.
+**Descarga:** se usa la URL del Blob con `?download=1`, que hace que Vercel Blob responda con `Content-Disposition: attachment`. El atributo `download` por sí solo se ignora entre orígenes distintos.
+**Descartado:** visor propio con pointer events (más código y más bugs en móvil); `react-medium-image-zoom` (hace zoom pero no paneo ni galería); abrir la imagen en una pestaña nueva (lo que había: sin zoom controlado ni descarga).
+**Eliminada de paso:** la dependencia `motion` 13.1.0, que estaba declarada y no se usaba (C4). Las animaciones son CSS puro.

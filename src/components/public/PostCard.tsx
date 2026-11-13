@@ -1,5 +1,4 @@
-import Image from "next/image";
-
+import PostImages from "@/components/public/PostImages";
 import type { PostWithMedia } from "@/db/schema";
 import { formatDate } from "@/lib/slug";
 import { youtubeEmbedUrl } from "@/lib/youtube";
@@ -85,25 +84,10 @@ export default function PostCard({
 
         {/* Fotos */}
         {images.length > 0 ? (
-          <div className="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-3">
-            {images.map((item) => (
-              <a
-                key={item.id}
-                href={item.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="relative aspect-4/3 border border-blueline/40 transition-colors hover:border-amber"
-              >
-                <Image
-                  src={item.url}
-                  alt={item.label ?? post.title}
-                  fill
-                  sizes="(max-width: 640px) 50vw, 240px"
-                  className="object-cover"
-                />
-              </a>
-            ))}
-          </div>
+          <PostImages
+            title={post.title}
+            images={images.map(({ id, url, label }) => ({ id, url, label }))}
+          />
         ) : null}
 
         {/* Enlaces externos */}
