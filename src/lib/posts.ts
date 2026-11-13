@@ -8,6 +8,7 @@ import {
   type SectionSlug,
   type SubsectionSlug,
 } from "@/db/schema";
+import { previewDiag, safeErrorMessage } from "@/lib/diag";
 
 /**
  * Todas las consultas degradan a lista vacía cuando aún no hay base de datos
@@ -28,21 +29,29 @@ export async function listPosts({
   planoSlug,
   includeUnpublished = false,
 }: ListOptions): Promise<PostWithMedia[]> {
+  const consulta = { section, subsection, planoSlug: planoSlug ?? null };
+
   const db = tryGetDb();
-  if (!db) return [];
+  if (!db) {
+    previewDiag("listPosts sin base de datos", { ...consulta, postsDevueltos: 0 });
+    return [];
+  }
 
   const filters = [eq(posts.section, section), eq(posts.subsection, subsection)];
   if (planoSlug) filters.push(eq(posts.planoSlug, planoSlug));
   if (!includeUnpublished) filters.push(eq(posts.published, true));
 
   try {
-    return await db.query.posts.findMany({
+    const rows = await db.query.posts.findMany({
       where: and(...filters),
       orderBy: [asc(posts.position), desc(posts.createdAt)],
       with: { media: { orderBy: [asc(postMedia.position)] } },
     });
+    previewDiag("listPosts", { ...consulta, postsDevueltos: rows.length });
+    return rows;
   } catch (error) {
-    console.error("[posts] listPosts falló:", error);
+    console.error("[posts] listPosts falló:", safeErrorMessage(error));
+    previewDiag("listPosts con error", { ...consulta, postsDevueltos: 0 });
     return [];
   }
 }
@@ -60,7 +69,7 @@ export async function listRecentPosts(limit = 4): Promise<PostWithMedia[]> {
       with: { media: { orderBy: [asc(postMedia.position)] } },
     });
   } catch (error) {
-    console.error("[posts] listRecentPosts falló:", error);
+    console.error("[posts] listRecentPosts falló:", safeErrorMessage(error));
     return [];
   }
 }
@@ -76,7 +85,7 @@ export async function listAllPosts(): Promise<PostWithMedia[]> {
       with: { media: { orderBy: [asc(postMedia.position)] } },
     });
   } catch (error) {
-    console.error("[posts] listAllPosts falló:", error);
+    console.error("[posts] listAllPosts falló:", safeErrorMessage(error));
     return [];
   }
 }
@@ -92,7 +101,7 @@ export async function getPostById(id: string): Promise<PostWithMedia | null> {
     });
     return record ?? null;
   } catch (error) {
-    console.error("[posts] getPostById falló:", error);
+    console.error("[posts] getPostById falló:", safeErrorMessage(error));
     return null;
   }
 }
@@ -108,7 +117,8 @@ export async function countPosts(): Promise<number> {
       .from(posts)
       .where(eq(posts.published, true));
     return rows.length;
-  } catch {
+  } catch (error) {
+    console.error("[posts] countPosts falló:", safeErrorMessage(error));
     return 0;
   }
 }

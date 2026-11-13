@@ -2,6 +2,7 @@ import { neon } from "@neondatabase/serverless";
 import { drizzle } from "drizzle-orm/neon-http";
 
 import { assertSafeDatabase } from "../lib/db-guard";
+import { safeErrorMessage } from "../lib/diag";
 import * as schema from "./schema";
 
 /**
@@ -36,12 +37,21 @@ export function getDb(): Database {
 
 /** Cliente Drizzle o `null` si aún no hay base de datos configurada. */
 export function tryGetDb(): Database | null {
-  if (!isDatabaseConfigured) return null;
+  if (!isDatabaseConfigured) {
+    // En Vercel siempre debería haber base: que no pase en silencio.
+    if (process.env.VERCEL_ENV) {
+      console.error(
+        `[db] DATABASE_URL no está definida en este despliegue (VERCEL_ENV=${process.env.VERCEL_ENV}, rama=${process.env.VERCEL_GIT_COMMIT_REF ?? "?"}). Las consultas devuelven vacío.`,
+      );
+    }
+    return null;
+  }
   // La guarda va fuera del try: si falla, no debe degradar en silencio.
   assertSafeDatabase();
   try {
     return getDb();
-  } catch {
+  } catch (error) {
+    console.error("[db] No se pudo crear el cliente:", safeErrorMessage(error));
     return null;
   }
 }

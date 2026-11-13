@@ -13,6 +13,7 @@ import {
   postMedia,
   posts,
 } from "@/db/schema";
+import { safeErrorMessage } from "@/lib/diag";
 import { getSectionByValue } from "@/lib/site";
 import { slugify } from "@/lib/slug";
 
@@ -205,7 +206,7 @@ export async function createPost(
 
     revalidateFor(parsed.section, parsed.subsection, parsed.planoSlug);
   } catch (error) {
-    console.error("[admin] createPost falló:", error);
+    console.error("[admin] createPost falló:", safeErrorMessage(error));
     return { error: "No se pudo guardar la publicación. Inténtalo de nuevo." };
   }
 
@@ -282,7 +283,7 @@ export async function updatePost(
     revalidateFor(previous.section, previous.subsection, previous.planoSlug);
     revalidateFor(parsed.section, parsed.subsection, parsed.planoSlug);
   } catch (error) {
-    console.error("[admin] updatePost falló:", error);
+    console.error("[admin] updatePost falló:", safeErrorMessage(error));
     return { error: "No se pudo actualizar la publicación." };
   }
 
@@ -320,7 +321,7 @@ export async function deletePost(formData: FormData): Promise<void> {
       revalidateFor(previous.section, previous.subsection, previous.planoSlug);
     }
   } catch (error) {
-    console.error("[admin] deletePost falló:", error);
+    console.error("[admin] deletePost falló:", safeErrorMessage(error));
   }
 
   revalidatePath("/admin");

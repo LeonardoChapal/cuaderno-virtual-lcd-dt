@@ -2,6 +2,7 @@ import { type HandleUploadBody, handleUpload } from "@vercel/blob/client";
 import { NextResponse } from "next/server";
 
 import { auth } from "@/auth";
+import { safeErrorMessage } from "@/lib/diag";
 
 /**
  * Emite los tokens para subir archivos directamente del navegador a Vercel
@@ -53,6 +54,7 @@ export async function POST(request: Request): Promise<NextResponse> {
 
     return NextResponse.json(result);
   } catch (error) {
+    console.error("[upload] Falló la subida:", safeErrorMessage(error));
     return NextResponse.json(
       { error: (error as Error).message },
       { status: 400 },
