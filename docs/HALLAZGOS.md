@@ -64,7 +64,14 @@ La guarda funcionó: host `ep-quiet-poetry-aumbudj3-pooler.c-10.us-east-1.aws.ne
 - `drizzle-kit generate` (en copia temporal) → *"No schema changes, nothing to migrate"*: `schema.ts` coincide con `drizzle/meta`.
 - Consecuencia: si hoy se corriera `drizzle-kit migrate` sobre esta base, intentaría ejecutar `0000` desde cero y **fallaría** (`type "media_type" already exists`) sin borrar nada, pero la migración 0001 nunca se aplicaría. Hay que dejar la base "al día" antes.
 
-### Propuesta: baseline de migraciones (NO ejecutada; requiere tu aprobación)
+### ✅ Baseline ejecutado en `dev-mejoras` (2026-11-12, aprobado por Leonardo)
+- Producción tiene los mismos 4 posts que la rama (Planos 1, Tornillo 1, Proyecto 2; confirmado por Leonardo).
+- `npx tsx scripts/baseline-migraciones.ts` → creó `drizzle.__drizzle_migrations` y registró `0000_wet_sentinels` (hash `d618a71f6dbd…`, `created_at` 1787099108066).
+- `npm run db:migrate` → *migrations applied successfully*; la tabla sigue con **1 fila** (no volvió a ejecutar `0000`) y las tablas `users/posts/post_media` no cambiaron.
+- Conteo posterior idéntico al base: 4 posts, 4 imágenes, 4/4 responden.
+- Producción: **sin tocar**; el baseline allí va en el Bloque E, tras la rama de respaldo y con tu aprobación.
+
+### Propuesta original: baseline de migraciones
 `drizzle-orm` (`pg-core/dialect.js` l.50-67) decide qué migraciones aplicar comparando solo `created_at` de la última fila de `drizzle.__drizzle_migrations` con el `when` de cada entrada del journal. Para marcar `0000` como ya aplicada basta una operación **aditiva** (crea una tabla nueva y le inserta una fila; no toca `users`, `posts` ni `post_media`):
 ```sql
 CREATE SCHEMA IF NOT EXISTS "drizzle";

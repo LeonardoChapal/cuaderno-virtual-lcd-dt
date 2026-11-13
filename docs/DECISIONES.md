@@ -15,3 +15,13 @@ Decisiones de arquitectura numeradas, con el porqué y las alternativas descarta
 
 ## D-003 — Borrado de blobs (2026-11-12)
 **Decisión:** hoy el código no borra blobs, así que no hace falta no-op. Si se agrega `del()` (p. ej. para limpiar huérfanos), debe ser un no-op fuera de producción y desarrollo debe usar su propio Blob store (token distinto).
+
+## D-004 — Plan comprimido en bloques A–E (2026-11-12)
+**Decisión:** las fases 0–7 pasan a cinco bloques (A reconocimiento, B auditoría de una página, C todo lo que no toca la base, D panel y subidas, E producción). El revisor independiente solo va en el Bloque E; el Bloque C va sin plan mode, con un commit por mejora.
+**Por qué:** avanzar más rápido sin perder los controles de datos (guarda, conteo, producción solo al final).
+**Cambios de alcance:** `position` y `published` ya existen, así que M3 no necesita migración y M4 ya está hecho; se quita M9 (el sitio ya es oscuro); se agregan la portada de tarjeta (M10) y recortar/rotar fotos nuevas (en M6).
+**Descartado:** revisor en cada fase (más lento; el diff completo se revisa una vez antes de producción).
+
+## D-005 — Script de baseline de migraciones (2026-11-12)
+**Decisión:** `scripts/baseline-migraciones.ts` crea `drizzle.__drizzle_migrations` y registra `0000` como aplicada (hash sha256 del .sql y `when` del journal). Es aditivo e idempotente y pasa por la guarda de BD.
+**Por qué:** la base se creó con `push` y `drizzle-kit migrate` fallaría al re-ejecutar `0000`. **Descartado:** editar `0000` (prohibido, §3.2).

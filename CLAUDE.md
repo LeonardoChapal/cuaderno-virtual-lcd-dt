@@ -21,7 +21,7 @@
 10. Arquitectura y stack
 11. Modelo de datos
 12. Estructura de carpetas
-13. Fases (con modelo, esfuerzo y criterio de "terminado")
+13. Bloques de trabajo (con modelo, esfuerzo y criterio de "terminado")
 14. Plan de pruebas y verificación de datos
 15. Riesgos conocidos
 16. Preguntas abiertas para la Fase 0
@@ -34,7 +34,7 @@
 
 - Me llamo Leonardo. Soy estudiante de Tecnología en Desarrollo de Software, nivel **principiante-intermedio**. Sé lo básico de JS/TS/TSX, Python, C# y C++.
 - Explícame las decisiones importantes **en pocas líneas**, sin teoría larga. Si usas un concepto nuevo (por ejemplo "rama de Neon" o "client upload"), explícalo en una frase la primera vez.
-- Trabaja **por fases** (sección 13). Al empezar cada fase, entra en **plan mode**, muéstrame el plan y **espera mi aprobación** antes de escribir código.
+- Trabaja **por bloques** (sección 13). Los Bloques B y E y cualquier cosa que toque el esquema o la base empiezan en **plan mode**: muéstrame el plan y **espera mi aprobación** antes de escribir código. El Bloque C va **sin plan mode**, con un commit por mejora.
 - Prefiero **cambios pequeños e iterativos**. No regeneres archivos completos si basta con una edición puntual.
 - **Rapidez con calidad:** quiero avanzar rápido hacia versiones funcionales, pero sin bugs obvios, con código limpio y un resultado que se vea profesional. Nada de perfeccionismo en detalles menores.
 - **No adivines en silencio.** Si algo es ambiguo, dime qué asumiste. Si una decisión es difícil de revertir y puede ir en cualquier dirección, para y pregúntame.
@@ -43,9 +43,9 @@
 - **Documentación viva:**
   - `docs/HALLAZGOS.md`: lo que descubras del código, la base de datos y los servicios (con fecha).
   - `docs/DECISIONES.md`: decisiones de arquitectura numeradas (D-001, D-002…), con el porqué y las alternativas descartadas.
-  - Cuando termine una fase, márcala ✅ en §13 con la fecha.
-- **Al final de cada fase** dime qué modelo y esfuerzo recomiendas para la siguiente (ver §13). Tú no puedes cambiarlos; los cambio yo con `/model` y `/effort`.
-- **Revisor independiente:** en las fases marcadas con 🔎 en §13, al terminar lanza un subagente revisor que no haya visto el trabajo, para que revise el diff con ojos frescos. Corrige lo que encuentre, cada arreglo con su commit.
+  - Cuando termine un bloque, márcalo ✅ en §13 con la fecha.
+- **Al final de cada bloque** dime qué modelo y esfuerzo recomiendas para el siguiente (ver §13). Tú no puedes cambiarlos; los cambio yo con `/model` y `/effort`.
+- **Revisor independiente:** solo en el Bloque E (🔎): lanza un subagente revisor que no haya visto el trabajo, para que revise el diff `main...mejoras` con ojos frescos. Corrige lo que encuentre, cada arreglo con su commit.
 
 ---
 
@@ -88,7 +88,7 @@ Estas reglas ganan sobre cualquier otra instrucción, incluida una mía en el ch
 2. **Comandos prohibidos** en cualquier base: `drizzle-kit push` (aplica cambios sin migración revisable y puede borrar columnas), `drizzle-kit drop`, borrar o editar migraciones ya aplicadas en `drizzle/`, `DROP`, `TRUNCATE`, `DELETE` sin `WHERE` y cualquier seed que borre datos. Si resulta que el proyecto usa Prisma, aplica lo equivalente (`migrate reset`, `db push --force-reset`, `--accept-data-loss`).
 3. **Migraciones solo aditivas:** agregar tablas, o columnas opcionales o con valor por defecto. **Prohibido** renombrar o eliminar columnas o tablas, cambiar tipos de forma destructiva o volver obligatoria una columna existente. Si un cambio necesita algo destructivo, para y explícame alternativas.
 4. **Valores por defecto que no cambien lo visible:** cualquier columna nueva debe dejar el sitio igual para los datos existentes. Ejemplo: si se agrega `status` (borrador/publicado), el default es **publicado**, para que ninguna plancha existente desaparezca.
-5. **Producción solo se migra al final** (Fase 7), con `drizzle-kit migrate` (o el script de migración que ya use el proyecto), después de crear una rama de respaldo en Neon, revisar conmigo el SQL de cada migración (`drizzle-kit generate` produce el .sql) y tener mi aprobación explícita. Nunca `push` en producción.
+5. **Producción solo se migra al final** (Bloque E), con el baseline (`scripts/baseline-migraciones.ts`) y, si hay migraciones nuevas, `drizzle-kit migrate`, después de crear una rama de respaldo en Neon, revisar conmigo el SQL de cada migración (`drizzle-kit generate` produce el .sql) y tener mi aprobación explícita. Nunca `push` en producción.
 6. **Archivos de Vercel Blob:** nunca borres, muevas ni sobrescribas blobs existentes.
    - Ojo: la rama de Neon de desarrollo es una copia de la base, **pero el Blob no**. Si en desarrollo se elimina un post y el código llama a `del()` sobre su archivo, **se borra el archivo real que usa producción**. Por eso en desarrollo hay que usar **un Blob store separado** (otro token) o hacer que el borrado de archivos sea un no-op fuera de producción. Resuélvelo en la Fase 0, antes de probar cualquier eliminación.
 7. **Git:** trabaja en la rama `mejoras` (o en ramas por fase que salgan de ella). `main` probablemente despliega a producción en Vercel ❓: nada de push ni merge a `main` sin mi aprobación.
@@ -179,19 +179,20 @@ Reglas:
 
 ### 8.4 Mejoras candidatas de esta etapa
 
-La Fase 1 las audita y prioriza conmigo. Mi orden propuesto:
+El Bloque B las audita y prioriza conmigo. Tabla actualizada (2026-11-12):
 
-| # | Mejora | Toca esquema | Fase |
+| # | Mejora | Toca esquema | Bloque |
 |---|---|---|---|
-| M1 | Visor de planchas con zoom y paneo (clave para ver detalles de un plano) + botón de descarga | No | 3 |
-| M2 | Rendimiento de medios: imágenes optimizadas, carga diferida de videos, tamaños correctos | No | 3 |
-| M3 | Reordenar posts arrastrando en el panel | Sí (`order`, aditivo) | 4 |
-| M4 | Estado borrador/publicado | Sí (`status`, default publicado) | 4 |
-| M5 | Subida directa a Blob desde el navegador, con barra de progreso, para videos grandes | No ❓ | 5 |
-| M6 | Compresión automática de fotos al subirlas (solo subidas nuevas; no reprocesar las existentes) | No | 5 |
-| M7 | Búsqueda y filtros por sección o tipo en el sitio público | No | 6 |
-| M8 | SEO y vista previa al compartir (título, descripción e imagen al pegar el link en WhatsApp) | No | 6 |
-| M9 | Modo oscuro y mejoras de accesibilidad | No | 6 |
+| M1 | Visor de planchas con zoom, paneo y botón de descarga | No | C |
+| M2 | Rendimiento de medios: imágenes optimizadas, carga diferida de videos, tamaños correctos | No | C |
+| M3 | Reordenar posts arrastrando en el panel, usando `posts.position` | **No** (la columna ya existe) | D |
+| M4 | Estado borrador/publicado | **Ya hecho** (`posts.published`, checkbox en el panel) | — |
+| M5 | Barra de progreso en las subidas (la subida directa a Blob ya existe) | No | D |
+| M6 | Compresión automática de fotos al subirlas, más recortar y rotar en el panel (solo subidas nuevas; no reprocesar las existentes) | No | D |
+| M7 | Búsqueda y filtros por sección o tipo en el sitio público | No | C |
+| M8 | SEO y vista previa al compartir (título, descripción e imagen al pegar el link en WhatsApp) | No | C |
+| M9 | ~~Modo oscuro y accesibilidad~~ **Quitada:** el sitio ya es oscuro. La accesibilidad entra en el pulido de §9. | — | — |
+| M10 | Portada de tarjeta: la primera plancha de cada categoría; si no hay, el patrón actual | No | C |
 
 Si en la auditoría encuentras algo más urgente (un bug, un hueco de seguridad), va antes que estas mejoras.
 
@@ -204,6 +205,11 @@ Si en la auditoría encuentras algo más urgente (un bug, un hueco de seguridad)
 - Animaciones **ligeras** (Framer Motion u otra si hay razón), sin exagerar, y respetando `prefers-reduced-motion`.
 - Las planchas como tarjetas con buena jerarquía visual (miniatura, título, ítem, sección).
 - **No rediseñes todo de golpe.** Mejora sobre lo que ya hay. Si propones un cambio visual grande, muéstramelo primero en el plan.
+- **Decisión (2026-11-12): el diseño blueprint actual se mantiene, sin rediseño.** El sitio ya es oscuro (no hay modo claro/oscuro). Solo se pule, en el Bloque C:
+  - Subir tamaño y contraste de los textos pequeños (etiquetas mono, subtítulos, contadores) hasta pasar contraste **AA**.
+  - Hacer que la animación del tornillo respete `prefers-reduced-motion`.
+  - Revisar el hero y las tarjetas en celular.
+  - Confirmar que el contador "2 secciones · 11 planos" sale de los datos (`src/lib/site.ts`) y no está escrito a mano.
 
 ---
 
@@ -234,12 +240,13 @@ Esquema real (`src/db/schema.ts`, verificado 2026-11-12):
 docs/
   HALLAZGOS.md
   DECISIONES.md
-  PLAN.md                   (sale de la Fase 1)
+  PLAN.md                   (sale del Bloque B, una página)
 drizzle/                    migraciones (0000 + meta/)
 scripts/
   seed.ts                   crea/actualiza el admin
   conteo-datos.ts           solo lectura, §14
   verificar-migraciones.ts  solo lectura, estado de migraciones
+  baseline-migraciones.ts   registra 0000 como aplicada (aditivo, idempotente)
 src/
   app/                      (public)/, admin/, api/, login/, layout, page
   components/{admin,public}/
@@ -250,51 +257,42 @@ src/
 
 ---
 
-## 13. Fases (con modelo, esfuerzo y criterio de "terminado")
+## 13. Bloques de trabajo (plan comprimido, acordado 2026-11-12)
 
-Cada fase empieza en **plan mode** y espera mi aprobación. 🔎 = revisor independiente al terminar.
+Sustituye al plan original de fases 0–7. Modelo y esfuerzo recomendados por bloque; al terminar cada uno me dices cuál sigue. 🔎 = revisor independiente (**solo en el Bloque E**).
 
-### Fase 0 — Reconocimiento y blindaje · Sonnet 5.5 · `medium` · ✅ 2026-11-12 (pendiente: aprobar el baseline de migraciones, ver HALLAZGOS)
-- Leer el repo completo; corregir §6, §11 y §12 de este archivo con la realidad.
-- `git remote -v` y crear la rama `mejoras`.
-- Darme los pasos para crear la rama de Neon desde producción, crear un Blob store de desarrollo (o decidir el no-op de borrado, §3.6) y llenar `.env.local`.
-- Agregar la guarda que imprime el host de la base y aborta si es producción (§3.1).
-- Escribir `scripts/conteo-datos.ts` (§14), correrlo contra la rama de Neon y guardar el resultado base en HALLAZGOS.
-- Crear `docs/HALLAZGOS.md` y `docs/DECISIONES.md`.
-- Responder las preguntas de §16.
-- **Terminado cuando:** la rama existe, `.env.local` apunta a la rama de Neon (confirmado por la guarda), el borrado de blobs en desarrollo no puede tocar producción, el conteo base está guardado y §16 está respondida.
+### Bloque A — Reconocimiento y blindaje · Sonnet 5.5 · `medium` · ✅ 2026-11-12
+- Rama `mejoras`, guarda de BD (`src/lib/db-guard.ts`), scripts de conteo y verificación, docs, conteo base y límites anotados en HALLAZGOS.
+- Baseline de migraciones aplicado en la rama de Neon `dev-mejoras` (producción queda para el Bloque E).
 
-### Fase 1 — Auditoría y plan · Opus 5.5 · `high`
-- Revisar todo el código: bugs, seguridad (sesión verificada en servidor, rutas de subida protegidas, secretos), rendimiento, accesibilidad, código muerto (por ejemplo `src/data`) y deuda técnica.
-- Escribir `docs/PLAN.md` con hallazgos priorizados, las mejoras M1–M9 ordenadas y, para cada tarea, qué modelo y esfuerzo recomiendas.
-- **No escribe código.**
+### Bloque B — Auditoría · Opus 5.5 · `high`
+- Revisar todo el código (bugs, seguridad, rendimiento, accesibilidad, deuda) y escribir **una sola página** en `docs/PLAN.md` con hallazgos priorizados. **Sin código.**
 - **Terminado cuando:** apruebo `PLAN.md`.
 
-### Fase 2 — Correcciones · Sonnet 5.5 · `medium` · 🔎
-- Bugs y deuda de la Fase 1, cada uno con su commit.
-- **Terminado cuando:** build, typecheck y lint pasan, el conteo no cambió y el revisor no deja pendientes importantes.
+### Bloque C — Todo lo que no toca la base · Sonnet 5.5 · `high` · sin plan mode, **un commit por mejora**
+- Correcciones de la auditoría (Bloque B).
+- Visor de planchas con zoom, paneo y botón de descarga (M1).
+- Rendimiento de medios: imágenes optimizadas, carga diferida de videos, tamaños correctos (M2).
+- Búsqueda y filtros por sección o tipo (M7).
+- SEO y vista previa al compartir (M8).
+- **Portada de tarjeta:** la primera plancha (imagen) de cada categoría se usa como portada de su tarjeta; si no hay, se queda el patrón actual.
+- Pulido de diseño de §9 (sin rediseño).
+- **Terminado cuando:** build, typecheck y lint pasan, el conteo no cambió y me das el visto bueno en las pruebas 🌐.
 
-### Fase 3 — Visor de planchas y medios (M1, M2) · Sonnet 5.5 · `high`
-- **Terminado cuando:** puedo hacer zoom y paneo en una plancha real en móvil y en escritorio, descargarla, y las páginas cargan más rápido que antes (dime cómo lo mediste).
+### Bloque D — Panel y subidas · Opus 5.5 · `high` · sin migración
+- Arrastrar para ordenar usando `posts.position` (M3). **Sin migración.**
+- Barra de progreso en las subidas (M5). La ruta que autoriza la subida sigue verificando sesión de admin en servidor y limitando tipos y tamaños.
+- Compresión automática de fotos (M6) y, en el panel, **recortar y rotar** fotos antes de subirlas. **Solo subidas nuevas; las fotos existentes no se tocan.**
+- Se prueba solo con la rama de Neon y el Blob de desarrollo.
+- **Terminado cuando:** reordeno en el panel y se refleja en el sitio; subo un video grande con progreso y una foto nueva recortada/comprimida; el conteo base sigue igual.
 
-### Fase 4 — Orden y borradores (M3, M4) · Opus 5.5 · `high` para la migración; Sonnet 5.5 · `high` para la interfaz · 🔎
-- Migración aditiva probada **solo** en la rama de Neon. Muéstrame el SQL generado antes de aplicarla.
-- **Terminado cuando:** reordeno en el panel y se refleja en el sitio, un borrador no aparece en público, y **todas las planchas existentes siguen visibles y en el mismo orden** (conteo igual).
+### Bloque E — Paso a producción · Opus 5.5 · `high` · 🔎
+- Revisor independiente sobre el diff `main...mejoras` (único punto del plan con revisor); cada arreglo con su commit.
+- Preview deployment en Vercel con la rama de Neon; lista de pruebas 🌐.
+- Con mi aprobación explícita: rama de respaldo de Neon en producción → baseline de migraciones en producción (`scripts/baseline-migraciones.ts`, revisando el SQL conmigo) → `db:migrate` si hay migraciones nuevas → conteo en producción (debe dar 4 posts, 4 imágenes) → merge a `main`.
+- **Terminado cuando:** producción tiene las mejoras, el conteo coincide y yo confirmé las pruebas manuales.
 
-### Fase 5 — Subidas (M5, M6) · Opus 5.5 · `high` · 🔎
-- La ruta que autoriza la subida directa a Blob verifica la sesión de admin en el servidor y limita tipos y tamaños de archivo.
-- **Terminado cuando:** subo un video grande con barra de progreso desde el panel en desarrollo (al Blob de desarrollo), y una foto nueva se comprime sin perder calidad visible.
-
-### Fase 6 — Extras (M7, M8, M9) · Sonnet 5.5 · `medium`
-- **Terminado cuando:** la búsqueda y los filtros funcionan, el link compartido en WhatsApp muestra título e imagen (en el preview de Vercel), y el modo oscuro se ve bien en todas las páginas públicas.
-
-### Fase 7 — Revisión final y paso a producción · Opus 5.5 · `high` · 🔎
-- Revisión completa del diff `main...mejoras` con el revisor.
-- Preview deployment en Vercel conectado a la rama de Neon; dame la lista de 🌐 pruebas manuales.
-- Con mi aprobación: rama de respaldo de Neon en producción → migración de Drizzle en producción → conteo en producción → merge a `main`.
-- **Terminado cuando:** producción tiene las mejoras, el conteo de producción coincide con el de antes y yo confirmé las pruebas manuales.
-
-**Fable 5.2:** de reserva. Solo si Opus se atasca con un bug muy difícil o si decidimos rehacer la arquitectura. Si crees que alguna tarea lo necesita, dímelo y explica por qué.
+**Fable 5.2:** de reserva. Solo si Opus se atasca con un bug muy difícil o si se decide rehacer la arquitectura.
 
 ---
 
@@ -305,7 +303,7 @@ Cada fase empieza en **plan mode** y espera mi aprobación. 🔎 = revisor indep
   - Posts por sección × subcategoría × ítem de Planos.
   - Total de URLs de archivos referenciadas (fotos, videos) y cuántas responden bien (HEAD, sin descargar).
   - Imprime el host de la base al inicio.
-- Se corre al final de la Fase 0 (base), al final de cada fase que toque datos o esquema, y en el preview y en producción en la Fase 7.
+- Se corre al final del Bloque A (base), al final de cada bloque que toque datos o esquema, y en el preview y en producción en el Bloque E.
 - **Siempre:** build, typecheck y lint en verde antes de cada commit.
 - **Pruebas manuales (🌐):** las de cada "Terminado cuando" de §13, más:
   - `/` redirige a `/home`.
@@ -353,4 +351,4 @@ Cada fase empieza en **plan mode** y espera mi aprobación. 🔎 = revisor indep
 
 ## 18. Primer paso
 
-Empieza la **Fase 0** en plan mode. No cambies funcionalidad ni toques ninguna base de datos hasta que la guarda de §3.1 esté puesta y yo haya configurado `.env.local` con la rama de Neon.
+El Bloque A está terminado. Siguiente: **Bloque B** (auditoría, una página en `docs/PLAN.md`, sin código), en plan mode.
