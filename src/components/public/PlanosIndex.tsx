@@ -28,6 +28,16 @@ export default async function PlanosIndex({
     return acc;
   }, {});
 
+  // Portada de cada tarjeta: la primera imagen del primer post (ya vienen
+  // ordenados por `position`) de ese plano. Sin imagen, la tarjeta conserva
+  // la retícula isométrica.
+  const covers: Record<string, string> = {};
+  for (const post of posts) {
+    if (!post.planoSlug || covers[post.planoSlug]) continue;
+    const image = post.media.find((item) => item.type === "image");
+    if (image) covers[post.planoSlug] = image.url;
+  }
+
   return (
     <>
       <PageHeader
@@ -46,6 +56,7 @@ export default async function PlanosIndex({
               section={section}
               plano={plano}
               count={counts[plano.slug] ?? 0}
+              cover={covers[plano.slug]}
             />
           ))}
         </div>
