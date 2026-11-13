@@ -48,10 +48,39 @@ Cumple el orden exigido (`src/lib/site.ts`). `/login` no está enlazado y no hay
 ### Git
 - Remoto: `https://github.com/LeonardoChapal/cuaderno-virtual-lcd-dt.git`. Solo existía `main`; rama de trabajo `mejoras` creada.
 
-## Pendiente de la Fase 0 (requiere que `.env.local` apunte a la rama de Neon)
-- [ ] Conteo base: `npm run db:count` → pegar resultado aquí.
-- [ ] Estado de migraciones: `npx tsx scripts/verificar-migraciones.ts` → ¿existe `__drizzle_migrations`? ¿está registrada `0000`?
-- [ ] Comparar `schema.ts` con la base real: `drizzle-kit generate` en un directorio temporal; si genera cambios, **no guardarlos** y mostrarlos.
-- [ ] Propuesta para dejar la base como punto de partida de las migraciones (sin escribir nada sin aprobación).
-- [ ] Límites vigentes de Vercel (cuerpo de funciones), Vercel Blob y Neon: verificar en su documentación y anotarlos aquí.
-- [ ] Confirmar la Production Branch en Vercel (¿`main`?).
+## 2026-11-12 — Fase 0: verificación contra la rama de Neon `dev-mejoras` (solo lectura)
+
+La guarda funcionó: host `ep-quiet-poetry-aumbudj3-pooler.c-10.us-east-1.aws.neon.tech` (coincide con `DB_EXPECTED_HOST`). Production Branch de Vercel: `main` (única rama del repo en GitHub).
+
+### Conteo base (`npm run db:count`)
+- **Posts: 4** (los 4 publicados), todos en `fundamentacion_tecnologica / planos`:
+  - `planos`: 1 · `proyecto`: 2 · `tornillo`: 1.
+- **Medios (`post_media`): 4**, todos `image`. Archivos en Blob referenciados: 4, **responden bien: 4**.
+- Ojo: no hay posts en Diseño Aplicado ni en videos/consultas. Es el conteo de la **rama** (copia de producción en el momento de crearla); el de producción se compara en la Fase 7.
+
+### Estado de migraciones
+- **No existe la tabla `__drizzle_migrations`** en ningún esquema: la base se creó con `db:push`. Para Drizzle, la base no tiene migraciones aplicadas.
+- Columnas reales (26 en 3 tablas, 3 enums, 5 índices, 1 FK) **idénticas** al esquema: `drizzle-kit pull` hacia un directorio temporal (fuera de `drizzle/`) produjo el mismo SQL que `drizzle/0000_wet_sentinels.sql` (solo difiere en la forma en que la introspección anota los operadores de índice, cosmético).
+- `drizzle-kit generate` (en copia temporal) → *"No schema changes, nothing to migrate"*: `schema.ts` coincide con `drizzle/meta`.
+- Consecuencia: si hoy se corriera `drizzle-kit migrate` sobre esta base, intentaría ejecutar `0000` desde cero y **fallaría** (`type "media_type" already exists`) sin borrar nada, pero la migración 0001 nunca se aplicaría. Hay que dejar la base "al día" antes.
+
+### Propuesta: baseline de migraciones (NO ejecutada; requiere tu aprobación)
+`drizzle-orm` (`pg-core/dialect.js` l.50-67) decide qué migraciones aplicar comparando solo `created_at` de la última fila de `drizzle.__drizzle_migrations` con el `when` de cada entrada del journal. Para marcar `0000` como ya aplicada basta una operación **aditiva** (crea una tabla nueva y le inserta una fila; no toca `users`, `posts` ni `post_media`):
+```sql
+CREATE SCHEMA IF NOT EXISTS "drizzle";
+CREATE TABLE IF NOT EXISTS "drizzle"."__drizzle_migrations" (
+  id SERIAL PRIMARY KEY, hash text NOT NULL, created_at bigint
+);
+INSERT INTO "drizzle"."__drizzle_migrations" ("hash", "created_at")
+VALUES ('d618a71f6dbd07fe3ad93b83f8eb227bafe1970a33c97f6b097aa3cd2d401e80', 1787099108066);
+```
+(`hash` = sha256 de `0000_wet_sentinels.sql`; `created_at` = `when` de `_journal.json`.)
+Plan: 1) ejecutarlo primero en `dev-mejoras` con tu OK; 2) comprobar que `npm run db:migrate` responde "nada que aplicar"; 3) repetir en producción solo en la Fase 7, tras la rama de respaldo. Alternativa descartada: editar `0000` para hacerla idempotente (prohibido, §3.2).
+
+### Build
+`npm run build` pasa (27 páginas, con la guarda activa y la base de la rama). Typecheck y lint pasan.
+
+### Límites vigentes (consultados 2026-11-12; contrastar con la documentación antes de decisiones críticas)
+- **Vercel Functions** ([docs](https://vercel.com/docs/functions/limitations)): cuerpo de petición/respuesta máx. **4.5 MB** (413 `FUNCTION_PAYLOAD_TOO_LARGE`), en todos los planes. Duración: Hobby 300 s (default y máx.); Pro/Enterprise default 300 s, máx. 800 s.
+- **Vercel Blob** ([docs](https://vercel.com/docs/vercel-blob/usage-and-pricing)): tamaño máx. por archivo **5 TB**; client upload evita el límite de 4.5 MB; `multipart: true` recomendado para archivos >100 MB. Un blob de más de **512 MB no se cachea** en la CDN (cada acceso es un MISS con costo). Nuestro tope de 300 MB (`MAX_UPLOAD_MB`) queda bajo ambos.
+- **Neon Free** ([docs](https://neon.com/docs/introduction/plans)): las fuentes discrepan (1 GB vs 0.5 GB de almacenamiento por proyecto; 100 vs 50 CU-horas/mes); **10 ramas por proyecto**. Al pasarse suspende cómputo sin borrar datos. Conviene mirar el plan real en la consola de Neon. Con 4 posts, la base es diminuta.

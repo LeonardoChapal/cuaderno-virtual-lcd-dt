@@ -11,7 +11,7 @@ Decisiones de arquitectura numeradas, con el porqué y las alternativas descarta
 ## D-002 — `db:push` eliminado, `db:migrate` agregado (2026-11-12)
 **Decisión:** se quitó el script `db:push` y se agregó `db:migrate` (`drizzle-kit migrate`).
 **Por qué:** `push` está prohibido (§3.2). Las migraciones deben ser SQL revisable.
-**Pendiente:** producción se creó con `push`; hay que decidir cómo registrar `0000` como aplicada (ver HALLAZGOS) antes de usar `migrate` ahí.
+**Pendiente:** producción se creó con `push` y no tiene tabla de migraciones; la propuesta de baseline (registrar `0000` como aplicada, aditivo) está en HALLAZGOS y espera aprobación. Se probará primero en `dev-mejoras`.
 
 ## D-003 — Borrado de blobs (2026-11-12)
 **Decisión:** hoy el código no borra blobs, así que no hace falta no-op. Si se agrega `del()` (p. ej. para limpiar huérfanos), debe ser un no-op fuera de producción y desarrollo debe usar su propio Blob store (token distinto).

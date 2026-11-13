@@ -254,7 +254,7 @@ src/
 
 Cada fase empieza en **plan mode** y espera mi aprobación. 🔎 = revisor independiente al terminar.
 
-### Fase 0 — Reconocimiento y blindaje · Sonnet 5.5 · `medium`
+### Fase 0 — Reconocimiento y blindaje · Sonnet 5.5 · `medium` · ✅ 2026-11-12 (pendiente: aprobar el baseline de migraciones, ver HALLAZGOS)
 - Leer el repo completo; corregir §6, §11 y §12 de este archivo con la realidad.
 - `git remote -v` y crear la rama `mejoras`.
 - Darme los pasos para crear la rama de Neon desde producción, crear un Blob store de desarrollo (o decidir el no-op de borrado, §3.6) y llenar `.env.local`.
@@ -334,9 +334,9 @@ Cada fase empieza en **plan mode** y espera mi aprobación. 🔎 = revisor indep
 3. ✅ Ya existen `position` y `published` en `posts` (§11).
 4. ✅ Proxy + layout + cada acción + `/api/upload`.
 5. ✅ `src/data` no existe.
-6. ❓ Pendiente: confirmar en Vercel la Production Branch (¿`main`?).
+6. ✅ Production Branch de Vercel: `main` (única rama en GitHub).
 7. ✅ Solo imágenes y videos; no hay PDFs.
-8. ❓ Pendiente: conteo base (requiere `.env.local` con la rama de Neon). Ver `docs/HALLAZGOS.md`.
+8. ✅ Conteo base (rama `dev-mejoras`): 4 posts, 4 imágenes, 4/4 responden. Ver `docs/HALLAZGOS.md`.
 
 ---
 
