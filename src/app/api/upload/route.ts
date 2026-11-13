@@ -3,6 +3,10 @@ import { NextResponse } from "next/server";
 
 import { auth } from "@/auth";
 import { safeErrorMessage } from "@/lib/diag";
+import {
+  ALLOWED_CONTENT_TYPES,
+  DEFAULT_MAX_UPLOAD_MB,
+} from "@/lib/upload-rules";
 
 /**
  * Emite los tokens para subir archivos directamente del navegador a Vercel
@@ -14,20 +18,9 @@ import { safeErrorMessage } from "@/lib/diag";
 
 export const runtime = "nodejs";
 
-const ALLOWED_CONTENT_TYPES = [
-  "image/jpeg",
-  "image/png",
-  "image/webp",
-  "image/gif",
-  "image/avif",
-  "video/mp4",
-  "video/webm",
-  "video/quicktime",
-];
-
 /** Tope de tamaño por archivo: 300 MB. Ajustable con MAX_UPLOAD_MB. */
 const MAX_UPLOAD_BYTES =
-  Number(process.env.MAX_UPLOAD_MB ?? 300) * 1024 * 1024;
+  Number(process.env.MAX_UPLOAD_MB ?? DEFAULT_MAX_UPLOAD_MB) * 1024 * 1024;
 
 export async function POST(request: Request): Promise<NextResponse> {
   let body: HandleUploadBody;
@@ -50,7 +43,7 @@ export async function POST(request: Request): Promise<NextResponse> {
           throw new Error("No autorizado.");
         }
         return {
-          allowedContentTypes: ALLOWED_CONTENT_TYPES,
+          allowedContentTypes: [...ALLOWED_CONTENT_TYPES],
           maximumSizeInBytes: MAX_UPLOAD_BYTES,
           addRandomSuffix: true,
         };

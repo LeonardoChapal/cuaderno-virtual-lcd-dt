@@ -2,16 +2,27 @@
 
 import { upload } from "@vercel/blob/client";
 import Link from "next/link";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
 
 import type { MediaType, PostWithMedia } from "@/db/schema";
 import { SECTIONS, SECTION_LABELS, SUBSECTION_LABELS } from "@/lib/site";
 import { formatBytes } from "@/lib/slug";
+import {
+  ALLOWED_CONTENT_TYPES,
+  MULTIPART_THRESHOLD_BYTES,
+  uploadErrorMessage,
+} from "@/lib/upload-rules";
 import { youtubeId } from "@/lib/youtube";
 
 import type { ActionState } from "@/app/admin/actions";
+
+/**
+ * Estado de un archivo nuevo: en cola, subiendo o con error. Sin `status`,
+ * el adjunto ya está listo (subido o es un enlace).
+ */
+type UploadStatus = "queued" | "uploading" | "error";
 
 type MediaDraft = {
   key: string;
@@ -20,10 +31,20 @@ type MediaDraft = {
   label: string;
   fileName?: string;
   fileSize?: number;
-  /** Progreso 0-100 mientras se sube a Vercel Blob. */
+  status?: UploadStatus;
+  /** Progreso 0-100 y bytes enviados mientras se sube a Vercel Blob. */
   progress?: number;
+  loaded?: number;
   error?: string;
+  /** El archivo sigue en memoria y se puede volver a intentar. */
+  retryable?: boolean;
 };
+
+/** Subidas simultáneas: más satura la conexión sin acabar antes. */
+const MAX_PARALLEL_UPLOADS = 2;
+
+const isPending = (item: MediaDraft) =>
+  item.status === "queued" || item.status === "uploading";
 
 const TYPE_LABELS: Record<MediaType, string> = {
   youtube: "Video de YouTube",
@@ -96,12 +117,39 @@ export default function PostForm({
     [sectionValue],
   );
 
+  // Archivos de la cola de subida (fuera del estado de React: no se pintan).
+  const files = useRef(new Map<string, File>());
+  const controllers = useRef(new Map<string, AbortController>());
+  const queue = useRef<string[]>([]);
+  const active = useRef(0);
+
   // Los adjuntos que aún se están subiendo no deben guardarse.
-  const uploading = media.some((item) => item.progress !== undefined);
+  const pending = media.filter(isPending);
+  const uploading = pending.length > 0;
+  const failed = media.filter((item) => item.status === "error");
+  const totalBytes = pending.reduce((sum, item) => sum + (item.fileSize ?? 0), 0);
+  const sentBytes = pending.reduce((sum, item) => sum + (item.loaded ?? 0), 0);
+  const totalPercent = totalBytes
+    ? Math.min(100, Math.round((sentBytes / totalBytes) * 100))
+    : 0;
+
+  // Cerrar o recargar la pestaña con subidas en curso las perdería.
+  useEffect(() => {
+    if (!uploading) return;
+    const warn = (event: BeforeUnloadEvent) => event.preventDefault();
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, [uploading]);
+
+  // Al salir del formulario se cancelan las subidas que sigan en curso.
+  useEffect(() => {
+    const running = controllers.current;
+    return () => running.forEach((controller) => controller.abort());
+  }, []);
 
   const serializedMedia = JSON.stringify(
     media
-      .filter((item) => item.url && item.progress === undefined)
+      .filter((item) => item.url && !item.status)
       .map((item) => ({
         type: item.type,
         url: item.url,
@@ -124,7 +172,11 @@ export default function PostForm({
     );
   }
 
+  /** Quita un adjunto; si se estaba subiendo, cancela la subida. */
   function removeMedia(key: string) {
+    controllers.current.get(key)?.abort();
+    queue.current = queue.current.filter((queued) => queued !== key);
+    files.current.delete(key);
     setMedia((items) => items.filter((item) => item.key !== key));
   }
 
@@ -139,45 +191,104 @@ export default function PostForm({
     });
   }
 
-  /** Sube el archivo directo del navegador a Vercel Blob. */
-  async function handleFiles(files: FileList | null, type: MediaType) {
-    if (!files?.length) return;
+  /** Sube un archivo directo del navegador a Vercel Blob. */
+  async function runUpload(key: string, file: File) {
+    const controller = new AbortController();
+    controllers.current.set(key, controller);
+    updateMedia(key, {
+      status: "uploading",
+      progress: 0,
+      loaded: 0,
+      error: undefined,
+    });
 
-    for (const file of Array.from(files)) {
-      const key = newKey();
-      setMedia((items) => [
-        ...items,
-        {
-          key,
-          type,
-          url: "",
-          label: file.name,
-          fileName: file.name,
-          fileSize: file.size,
-          progress: 0,
+    try {
+      const blob = await upload(file.name, file, {
+        access: "public",
+        handleUploadUrl: "/api/upload",
+        multipart: file.size > MULTIPART_THRESHOLD_BYTES,
+        abortSignal: controller.signal,
+        onUploadProgress: ({ loaded, percentage }) => {
+          updateMedia(key, { progress: Math.round(percentage), loaded });
         },
-      ]);
-
-      try {
-        const blob = await upload(file.name, file, {
-          access: "public",
-          handleUploadUrl: "/api/upload",
-          multipart: true,
-          onUploadProgress: ({ percentage }) => {
-            updateMedia(key, { progress: Math.round(percentage) });
-          },
-        });
-        updateMedia(key, { url: blob.url, progress: undefined });
-      } catch (error) {
-        updateMedia(key, {
-          progress: undefined,
-          error:
-            error instanceof Error
-              ? error.message
-              : "No se pudo subir el archivo.",
-        });
-      }
+      });
+      files.current.delete(key);
+      updateMedia(key, {
+        url: blob.url,
+        status: undefined,
+        progress: undefined,
+        loaded: undefined,
+      });
+    } catch (error) {
+      // Cancelada a propósito: el adjunto ya se quitó de la lista.
+      if (controller.signal.aborted) return;
+      console.error("[panel] Falló la subida:", error);
+      updateMedia(key, {
+        status: "error",
+        progress: undefined,
+        loaded: undefined,
+        error: uploadErrorMessage(error),
+        retryable: true,
+      });
+    } finally {
+      controllers.current.delete(key);
     }
+  }
+
+  /** Arranca subidas de la cola sin pasar de MAX_PARALLEL_UPLOADS. */
+  function pump() {
+    while (active.current < MAX_PARALLEL_UPLOADS && queue.current.length) {
+      const key = queue.current.shift()!;
+      const file = files.current.get(key);
+      if (!file) continue;
+      active.current += 1;
+      void runUpload(key, file).finally(() => {
+        active.current -= 1;
+        pump();
+      });
+    }
+  }
+
+  /** Pone archivos en la cola de subida (todos se ven en la lista ya). */
+  function enqueueFiles(list: File[], type: MediaType) {
+    const drafts: MediaDraft[] = list.map((file) => {
+      const key = newKey();
+      const base = {
+        key,
+        type,
+        url: "",
+        label: file.name,
+        fileName: file.name,
+        fileSize: file.size,
+      };
+      // Se avisa antes de subir si el formato no lo aceptará el servidor
+      // (si el navegador no sabe el tipo, decide el servidor).
+      if (file.type && !ALLOWED_CONTENT_TYPES.includes(file.type)) {
+        return {
+          ...base,
+          status: "error" as const,
+          error: uploadErrorMessage(new Error("content type not allowed")),
+        };
+      }
+      files.current.set(key, file);
+      queue.current.push(key);
+      return { ...base, status: "queued" as const, progress: 0, loaded: 0 };
+    });
+
+    setMedia((items) => [...items, ...drafts]);
+    pump();
+  }
+
+  function retryUpload(key: string) {
+    if (!files.current.has(key)) return;
+    updateMedia(key, { status: "queued", error: undefined, progress: 0, loaded: 0 });
+    queue.current.push(key);
+    pump();
+  }
+
+  function handleFiles(list: FileList | null, type: MediaType) {
+    if (!list?.length) return;
+    enqueueFiles(Array.from(list), type);
   }
 
   return (
@@ -441,25 +552,56 @@ export default function PostForm({
                         onClick={() => removeMedia(item.key)}
                         className="tag px-2 py-1 text-graphite transition-colors hover:text-amber"
                       >
-                        Quitar
+                        {isPending(item) ? "Cancelar" : "Quitar"}
                       </button>
                     </div>
                   </div>
 
-                  {item.progress !== undefined ? (
+                  {item.status === "queued" ? (
+                    <p className="tag break-all text-graphite">
+                      En cola · {item.fileName}
+                      {item.fileSize ? ` · ${formatBytes(item.fileSize)}` : ""}
+                    </p>
+                  ) : item.status === "uploading" ? (
                     <div>
-                      <div className="mb-2 h-1 w-full bg-blueline/30">
+                      <div
+                        role="progressbar"
+                        aria-label={`Subiendo ${item.fileName ?? "archivo"}`}
+                        aria-valuemin={0}
+                        aria-valuemax={100}
+                        aria-valuenow={item.progress ?? 0}
+                        className="mb-2 h-1.5 w-full bg-blueline/30"
+                      >
                         <div
                           className="h-full bg-amber transition-[width]"
-                          style={{ width: `${item.progress}%` }}
+                          style={{ width: `${item.progress ?? 0}%` }}
                         />
                       </div>
-                      <p className="tag text-graphite">
-                        Subiendo {item.fileName} — {item.progress}%
+                      <p className="tag break-all text-graphite">
+                        Subiendo {item.fileName} — {item.progress ?? 0}%
                         {item.fileSize
-                          ? ` de ${formatBytes(item.fileSize)}`
+                          ? ` · ${formatBytes(item.loaded ?? 0)} de ${formatBytes(item.fileSize)}`
                           : ""}
                       </p>
+                    </div>
+                  ) : item.status === "error" ? (
+                    <div className="flex flex-col gap-3">
+                      <p className="tag break-all text-graphite">
+                        {item.fileName}
+                        {item.fileSize ? ` · ${formatBytes(item.fileSize)}` : ""}
+                      </p>
+                      <p role="alert" className="text-sm text-amber">
+                        {item.error}
+                      </p>
+                      {item.retryable ? (
+                        <button
+                          type="button"
+                          onClick={() => retryUpload(item.key)}
+                          className="tag self-start border border-amber px-4 py-2 text-amber transition-colors hover:bg-amber hover:text-ferro"
+                        >
+                          Reintentar
+                        </button>
+                      ) : null}
                     </div>
                   ) : (
                     <div className="flex flex-col gap-2">
@@ -510,9 +652,6 @@ export default function PostForm({
                     </p>
                   ) : null}
 
-                  {item.error ? (
-                    <p className="tag mt-2 text-amber">{item.error}</p>
-                  ) : null}
                 </li>
               );
             })}
@@ -529,6 +668,39 @@ export default function PostForm({
         </p>
       ) : null}
 
+      {uploading ? (
+        <div className="border border-amber/50 bg-amber/5 px-4 py-3">
+          <div
+            role="progressbar"
+            aria-label="Progreso total de las subidas"
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={totalPercent}
+            className="mb-2 h-1.5 w-full bg-blueline/30"
+          >
+            <div
+              className="h-full bg-amber transition-[width]"
+              style={{ width: `${totalPercent}%` }}
+            />
+          </div>
+          <p aria-live="polite" className="text-sm text-amber">
+            Subiendo {pending.length}{" "}
+            {pending.length === 1 ? "archivo" : "archivos"} — {totalPercent}% (
+            {formatBytes(sentBytes)} de {formatBytes(totalBytes)}). Espera a
+            que terminen para guardar.
+          </p>
+        </div>
+      ) : null}
+
+      {failed.length > 0 ? (
+        <p className="border-l-2 border-amber bg-amber/10 px-4 py-3 text-sm text-amber">
+          {failed.length === 1
+            ? "1 archivo no se pudo subir y no se guardará."
+            : `${failed.length} archivos no se pudieron subir y no se guardarán.`}{" "}
+          Reinténtalo o quítalo de la lista.
+        </p>
+      ) : null}
+
       <div className="flex flex-wrap items-center gap-3">
         <SubmitButton label={submitLabel} blocked={uploading} />
         <Link
@@ -537,11 +709,6 @@ export default function PostForm({
         >
           Cancelar
         </Link>
-        {uploading ? (
-          <span className="tag text-amber">
-            Espera a que terminen las subidas para guardar.
-          </span>
-        ) : null}
       </div>
     </form>
   );
