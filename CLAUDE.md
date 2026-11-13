@@ -281,7 +281,7 @@ Sustituye al plan original de fases 0–7. Modelo y esfuerzo recomendados por bl
 - Pulido de diseño de §9 (sin rediseño).
 - **Terminado cuando:** build, typecheck y lint pasan, el conteo no cambió y me das el visto bueno en las pruebas 🌐.
 
-### Bloque D — Panel y subidas · Opus 5.5 · `high` · sin migración
+### Bloque D — Panel y subidas · Opus 5.5 · `high` · sin migración · D1–D3 implementados 2026-11-12 (falta el visto bueno de las pruebas 🌐)
 - Arrastrar para ordenar usando `posts.position` (M3). **Sin migración.**
 - Pulir la barra de progreso de las subidas, que ya existe (M5). La ruta que autoriza la subida sigue verificando sesión de admin en servidor y limitando tipos y tamaños.
 - Compresión automática de fotos (M6) y, en el panel, **recortar y rotar** fotos antes de subirlas. **Solo subidas nuevas; las fotos existentes no se tocan.**
@@ -353,4 +353,4 @@ Sustituye al plan original de fases 0–7. Modelo y esfuerzo recomendados por bl
 
 ## 18. Primer paso
 
-Los Bloques A y B están terminados y el Bloque C está implementado (C1–C9, 2026-11-12), pendiente del visto bueno de las pruebas 🌐 en el preview. Siguiente: **Bloque D**, en el orden de `docs/PLAN.md` (D0 es un requisito tuyo: confirmar que `.env.local` usa el Blob de desarrollo). P0-4 resuelto el 2026-11-12: el preview de `mejoras` usa `dev-mejoras` y `cuaderno-dev` (ver §3.7).
+Los Bloques A y B están terminados. Los Bloques C (C1–C9) y D (D1–D3) están implementados (2026-11-12), pendientes del visto bueno de las pruebas 🌐 en el preview de `mejoras`. Siguiente, tras ese visto bueno: **Bloque E** (revisor independiente, preview y paso a producción con tu aprobación). Pendiente tuyo de D0: confirmar que `.env.local` usa el Blob de desarrollo. P0-4 resuelto el 2026-11-12: el preview de `mejoras` usa `dev-mejoras` y `cuaderno-dev` (ver §3.7).
