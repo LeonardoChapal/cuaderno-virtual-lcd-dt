@@ -1,6 +1,7 @@
 "use client";
 
 import { upload } from "@vercel/blob/client";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useActionState } from "react";
@@ -39,6 +40,11 @@ type MediaDraft = {
   /** El archivo sigue en memoria y se puede volver a intentar. */
   retryable?: boolean;
 };
+
+// El editor de fotos (y react-easy-crop) solo se descarga al elegir fotos.
+const PhotoEditor = dynamic(() => import("@/components/admin/PhotoEditor"), {
+  ssr: false,
+});
 
 /** Subidas simultáneas: más satura la conexión sin acabar antes. */
 const MAX_PARALLEL_UPLOADS = 2;
@@ -116,6 +122,9 @@ export default function PostForm({
     () => SECTIONS.find((item) => item.value === sectionValue) ?? SECTIONS[0],
     [sectionValue],
   );
+
+  // Fotos elegidas que esperan en el editor antes de subirse.
+  const [editorFiles, setEditorFiles] = useState<File[] | null>(null);
 
   // Archivos de la cola de subida (fuera del estado de React: no se pintan).
   const files = useRef(new Map<string, File>());
@@ -288,7 +297,17 @@ export default function PostForm({
 
   function handleFiles(list: FileList | null, type: MediaType) {
     if (!list?.length) return;
-    enqueueFiles(Array.from(list), type);
+    const chosen = Array.from(list);
+    if (type !== "image") {
+      enqueueFiles(chosen, type);
+      return;
+    }
+    // Fotos nuevas: pasan por el editor (girar, recortar, comprimir).
+    // Los GIF se suben tal cual para no perder la animación.
+    const gifs = chosen.filter((file) => file.type === "image/gif");
+    const photos = chosen.filter((file) => file.type !== "image/gif");
+    if (gifs.length) enqueueFiles(gifs, "image");
+    if (photos.length) setEditorFiles(photos);
   }
 
   return (
@@ -302,6 +321,14 @@ export default function PostForm({
       className="flex flex-col gap-8"
     >
       <input type="hidden" name="media" value={serializedMedia} />
+
+      {editorFiles ? (
+        <PhotoEditor
+          files={editorFiles}
+          onPhotoReady={(file) => enqueueFiles([file], "image")}
+          onClose={() => setEditorFiles(null)}
+        />
+      ) : null}
 
       {/* ---- Datos de la publicación ------------------------------------ */}
       <section className="border border-blueline/40 bg-prussian/85 p-5">

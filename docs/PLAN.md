@@ -48,7 +48,7 @@ Revisión de todo `src/` (auth, acciones del panel, subida, sitio público, esti
 | D0 | Requisito: confirmar que `.env.local` usa un **Blob store de desarrollo** (lo confirma Leonardo; Claude no puede leer `.env.local`) | — |
 | D1 ✅ 2026-11-12 | **M5 pulido:** la barra ya existe. Faltan progreso total, botón cancelar, reintento y mensajes claros. Prueba con video grande | Sonnet 5.5 · medium |
 | D2 ✅ 2026-11-12 | **M3 arrastrar:** `@dnd-kit/sortable` (accesible con teclado), lista del panel agrupada por sección/subsección/plano, acción `reorderPosts` con sesión y `db.batch`. Se quita el campo numérico "Orden". Sin migración | **Opus 5.5 · high** |
-| D3 | **M6 fotos nuevas:** recortar/rotar (`react-easy-crop`) → comprimir en el navegador (canvas a WebP/JPEG, máx. ~2560 px) → subir. Solo subidas nuevas | **Opus 5.5 · high** |
+| D3 ✅ 2026-11-12 | **M6 fotos nuevas:** recortar/rotar (`react-easy-crop`) → comprimir en el navegador (canvas a WebP/JPEG, máx. ~2560 px) → subir. Solo subidas nuevas | **Opus 5.5 · high** |
 
 ## Para el Bloque E
 - El revisor debe mirar en especial C1 y D2 (escrituras en BD).
