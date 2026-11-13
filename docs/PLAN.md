@@ -2,7 +2,7 @@
 
 Revisión de todo `src/` (auth, acciones del panel, subida, sitio público, estilos). Aprobado por Leonardo el 2026-11-12.
 
-> **Condición vigente:** no hacer push de `mejoras` hasta que Leonardo confirme que las variables *Preview* de Vercel apuntan a `dev-mejoras` y al Blob `cuaderno-dev` (hallazgo 4).
+> **Hallazgo 4 resuelto (2026-11-12):** el preview de `mejoras` usa `dev-mejoras` y `cuaderno-dev`. Solo esa rama es segura para los previews (CLAUDE.md §3.7).
 
 ## Hallazgos priorizados
 

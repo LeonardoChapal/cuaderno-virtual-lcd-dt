@@ -91,7 +91,8 @@ Estas reglas ganan sobre cualquier otra instrucción, incluida una mía en el ch
 5. **Producción solo se migra al final** (Bloque E), con el baseline (`scripts/baseline-migraciones.ts`) y, si hay migraciones nuevas, `drizzle-kit migrate`, después de crear una rama de respaldo en Neon, revisar conmigo el SQL de cada migración (`drizzle-kit generate` produce el .sql) y tener mi aprobación explícita. Nunca `push` en producción.
 6. **Archivos de Vercel Blob:** nunca borres, muevas ni sobrescribas blobs existentes.
    - Ojo: la rama de Neon de desarrollo es una copia de la base, **pero el Blob no**. Si en desarrollo se elimina un post y el código llama a `del()` sobre su archivo, **se borra el archivo real que usa producción**. Por eso en desarrollo hay que usar **un Blob store separado** (otro token) o hacer que el borrado de archivos sea un no-op fuera de producción. Resuélvelo en la Fase 0, antes de probar cualquier eliminación.
-7. **Git:** trabaja en la rama `mejoras` (o en ramas por fase que salgan de ella). `main` probablemente despliega a producción en Vercel ❓: nada de push ni merge a `main` sin mi aprobación.
+7. **Git:** trabaja en la rama `mejoras`. `main` despliega a producción en Vercel: nada de push ni merge a `main` sin mi aprobación.
+   - **Previews solo desde `mejoras`:** en Vercel, `DATABASE_URL` y `BLOB_READ_WRITE_TOKEN` de *Preview* están definidas **solo para la rama `mejoras`** (con `dev-mejoras` y `cuaderno-dev`). El preview de cualquier otra rama usaría las variables de **producción**. Por eso **no subas a GitHub ninguna rama que no sea `mejoras`**. Las ramas locales están permitidas, pero no se publican.
 8. **Secretos:** nunca imprimas, copies a documentos ni subas a git contraseñas, tokens o cadenas de conexión. Los `.env*` con valores reales no se commitean (solo `.env.example` sin valores). No cambies la contraseña del admin ni el `AUTH_SECRET` actuales.
 9. **No cambies el contenido** (títulos, descripciones, orden, archivos de las planchas) salvo que yo lo pida. Las mejoras son de código, diseño y funciones.
 10. **Conteo antes y después:** antes de empezar y al terminar cada fase que toque datos o esquema, corre el script de conteo de solo lectura (§14) y compara. Si algo baja, para todo y avísame.
@@ -352,4 +353,4 @@ Sustituye al plan original de fases 0–7. Modelo y esfuerzo recomendados por bl
 
 ## 18. Primer paso
 
-Los Bloques A y B están terminados. Siguiente: **Bloque C**, en el orden de `docs/PLAN.md` (C1 con Opus 5.5 · `high`). **No hacer push de `mejoras`** hasta que Leonardo confirme que las variables *Preview* de Vercel apuntan a `dev-mejoras` y al Blob `cuaderno-dev` (PLAN.md, P0-4).
+Los Bloques A y B están terminados. Siguiente: **Bloque C**, en el orden de `docs/PLAN.md` (C1 con Opus 5.5 · `high`). P0-4 resuelto el 2026-11-12: el preview de `mejoras` usa `dev-mejoras` y `cuaderno-dev` (ver §3.7).

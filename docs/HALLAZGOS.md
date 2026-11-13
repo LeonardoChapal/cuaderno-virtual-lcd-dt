@@ -97,4 +97,5 @@ Plan: 1) ejecutarlo primero en `dev-mejoras` con tu OK; 2) comprobar que `npm ru
 Hallazgos priorizados y orden de tareas en `docs/PLAN.md`. Dos hechos nuevos:
 - **M5 ya existe:** `PostForm.tsx` sube con `upload(..., { multipart: true, onUploadProgress })` y muestra una barra por archivo. Falta pulirla (D1).
 - **Riesgo de los previews:** la guarda de BD no actúa dentro de Vercel. Si las variables *Preview* son las de producción, el panel del preview de `mejoras` escribe en producción. Pendiente de que Leonardo lo confirme; hasta entonces no se hace push de `mejoras`.
+- **✅ P0-4 resuelto (2026-11-12, por Leonardo):** se creó la rama `mejoras` en GitHub a partir de `main`, y en Vercel se definieron `DATABASE_URL` y `BLOB_READ_WRITE_TOKEN` **solo para Preview, rama `mejoras`**, con los valores de `dev-mejoras` y `cuaderno-dev`. **Ojo:** los previews solo son seguros desde `mejoras`; el de cualquier otra rama usaría las variables de producción. No se sube a GitHub ninguna otra rama (CLAUDE.md §3.7).
 - En esta sesión no hay herramienta de PowerShell (solo Bash), así que no hacen falta reglas `deny` para PowerShell en `.claude/settings.json`.
