@@ -43,8 +43,3 @@ export function youtubeThumbnail(input: string): string | null {
   const id = youtubeId(input);
   return id ? `https://i.ytimg.com/vi/${id}/hqdefault.jpg` : null;
 }
-
-export function youtubeWatchUrl(input: string): string | null {
-  const id = youtubeId(input);
-  return id ? `https://www.youtube.com/watch?v=${id}` : null;
-}

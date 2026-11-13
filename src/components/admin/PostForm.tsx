@@ -402,6 +402,10 @@ export default function PostForm({
             {media.map((item, index) => {
               const badYoutube =
                 item.type === "youtube" && item.url && !youtubeId(item.url);
+              // Los .mov (QuickTime) no se reproducen en Chrome ni en Android.
+              const isMov =
+                item.type === "video_upload" &&
+                /\.mov$/i.test(item.fileName ?? item.url);
 
               return (
                 <li
@@ -495,6 +499,14 @@ export default function PostForm({
                   {badYoutube ? (
                     <p className="tag mt-2 text-amber">
                       Ese enlace no parece un video de YouTube.
+                    </p>
+                  ) : null}
+
+                  {isMov ? (
+                    <p className="mt-2 text-sm text-amber">
+                      Los archivos .mov no se reproducen en Chrome ni en
+                      Android. Convierte el video a MP4 antes de subirlo, o
+                      usa un enlace de YouTube.
                     </p>
                   ) : null}
 

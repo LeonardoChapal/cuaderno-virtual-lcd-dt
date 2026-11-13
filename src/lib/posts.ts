@@ -48,24 +48,6 @@ export async function listPosts({
   }
 }
 
-/** Publicaciones más recientes del sitio, para el hero de /home. */
-export async function listRecentPosts(limit = 4): Promise<PostWithMedia[]> {
-  const db = tryGetDb();
-  if (!db) return [];
-
-  try {
-    return await db.query.posts.findMany({
-      where: eq(posts.published, true),
-      orderBy: [desc(posts.createdAt)],
-      limit,
-      with: { media: { orderBy: [asc(postMedia.position)] } },
-    });
-  } catch (error) {
-    console.error("[posts] listRecentPosts falló:", safeErrorMessage(error));
-    return [];
-  }
-}
-
 /** Todas las publicaciones, para el panel de administración. */
 export async function listAllPosts(): Promise<PostWithMedia[]> {
   const db = tryGetDb();
@@ -95,22 +77,5 @@ export async function getPostById(id: string): Promise<PostWithMedia | null> {
   } catch (error) {
     console.error("[posts] getPostById falló:", safeErrorMessage(error));
     return null;
-  }
-}
-
-/** Conteo por subsección, usado para las estadísticas de /home. */
-export async function countPosts(): Promise<number> {
-  const db = tryGetDb();
-  if (!db) return 0;
-
-  try {
-    const rows = await db
-      .select({ id: posts.id })
-      .from(posts)
-      .where(eq(posts.published, true));
-    return rows.length;
-  } catch (error) {
-    console.error("[posts] countPosts falló:", safeErrorMessage(error));
-    return 0;
   }
 }
