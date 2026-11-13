@@ -1,7 +1,8 @@
 import PostImages from "@/components/public/PostImages";
+import YouTubeFacade from "@/components/public/YouTubeFacade";
 import type { PostWithMedia } from "@/db/schema";
 import { formatDate } from "@/lib/slug";
-import { youtubeEmbedUrl } from "@/lib/youtube";
+import { youtubeId } from "@/lib/youtube";
 
 /**
  * Ficha de publicación. Muestra en línea todo lo que el administrador adjuntó:
@@ -50,32 +51,29 @@ export default function PostCard({
 
         {/* Videos de YouTube */}
         {youtube.map((item) => {
-          const embed = youtubeEmbedUrl(item.url);
-          if (!embed) return null;
+          const videoId = youtubeId(item.url);
+          if (!videoId) return null;
+          // Miniatura primero; el iframe de YouTube solo se carga al pulsar.
           return (
-            <div
+            <YouTubeFacade
               key={item.id}
-              className="mb-4 aspect-video w-full border border-blueline/40"
-            >
-              <iframe
-                src={embed}
-                title={item.label ?? post.title}
-                allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-                loading="lazy"
-                className="h-full w-full"
-              />
-            </div>
+              videoId={videoId}
+              title={item.label ?? post.title}
+            />
           );
         })}
 
-        {/* Videos subidos */}
-        {videos.map((item) => (
+        {/* Videos subidos: solo el primero de la ficha descarga metadatos
+            (y un primer cuadro como portada); el resto espera a que se
+            pulse reproducir. */}
+        {videos.map((item, index) => (
           <video
             key={item.id}
-            src={item.url}
+            src={index === 0 ? `${item.url}#t=0.001` : item.url}
             controls
-            preload="metadata"
+            playsInline
+            preload={index === 0 ? "metadata" : "none"}
+            aria-label={item.label ?? post.title}
             className="mb-4 w-full border border-blueline/40 bg-ferro"
           >
             Tu navegador no puede reproducir este video.

@@ -21,6 +21,9 @@ const nextConfig: NextConfig = {
     return [{ source: "/:path*", headers: securityHeaders }];
   },
   images: {
+    // AVIF pesa bastante menos que WebP en planchas con líneas finas; si el
+    // navegador no lo soporta, Next cae a WebP.
+    formats: ["image/avif", "image/webp"],
     remotePatterns: [
       // Vercel Blob (fotos y portadas subidas desde el panel)
       { protocol: "https", hostname: "*.public.blob.vercel-storage.com" },
