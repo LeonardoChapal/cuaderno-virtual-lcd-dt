@@ -101,7 +101,7 @@ export default async function PlanoPage({
 
         {/* Resto de láminas de la misma sección */}
         <nav className="mt-16 border-t border-blueline/30 pt-6">
-          <p className="tag mb-4 text-blueline">
+          <p className="tag mb-4 text-label">
             Otras láminas de {section.title}
           </p>
           <ul className="flex flex-wrap gap-2">
@@ -111,7 +111,7 @@ export default async function PlanoPage({
                   href={planoHref(section, item)}
                   className="tag inline-flex items-center gap-2 border border-blueline/40 px-4 py-2.5 text-graphite transition-colors hover:border-amber hover:text-amber"
                 >
-                  <span className="text-blueline">{item.code}</span>
+                  <span className="text-label">{item.code}</span>
                   {item.title}
                 </Link>
               </li>

@@ -12,7 +12,7 @@ export default function EmptyState({
   return (
     <div className="grid-iso border border-dashed border-blueline/40 px-6 py-16 text-center">
       <p className="lettering mb-3 text-xl text-graphite">{title}</p>
-      <p className="mx-auto max-w-sm text-sm text-graphite/70">{hint}</p>
+      <p className="mx-auto max-w-sm text-sm text-graphite">{hint}</p>
     </div>
   );
 }

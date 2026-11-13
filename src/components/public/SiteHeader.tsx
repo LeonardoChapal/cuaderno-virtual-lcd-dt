@@ -35,7 +35,7 @@ export default function SiteHeader() {
             <span className="block font-display text-base uppercase tracking-[0.14em] text-chalk">
               {site.name}
             </span>
-            <span className="tag block text-blueline">{site.school}</span>
+            <span className="tag block text-label">{site.school}</span>
           </span>
         </Link>
 
@@ -51,7 +51,7 @@ export default function SiteHeader() {
                     active ? "text-cyan" : "text-graphite hover:text-chalk"
                   }`}
                 >
-                  <span className="tag text-blueline">
+                  <span className="tag text-label">
                     {String(section.index).padStart(2, "0")}
                   </span>
                   <span className="font-display text-sm uppercase tracking-[0.1em]">
@@ -86,6 +86,7 @@ export default function SiteHeader() {
           type="button"
           onClick={() => setOpen((value) => !value)}
           aria-expanded={open}
+          aria-controls="menu-movil"
           aria-label={open ? "Cerrar menú" : "Abrir menú"}
           className="flex h-10 w-10 flex-col items-center justify-center gap-1.5 border border-blueline/50 transition-colors hover:border-cyan lg:hidden"
         >
@@ -103,6 +104,9 @@ export default function SiteHeader() {
 
       {/* Panel móvil */}
       <div
+        id="menu-movil"
+        // Cerrado: sus enlaces no deben recibir foco con Tab ni leerse.
+        inert={!open}
         className={`overflow-hidden border-blueline/40 bg-ferro/95 backdrop-blur-md transition-[max-height,opacity] duration-300 lg:hidden ${
           open ? "max-h-[32rem] border-t opacity-100" : "max-h-0 opacity-0"
         }`}
@@ -115,7 +119,7 @@ export default function SiteHeader() {
                 onClick={() => setOpen(false)}
                 className="flex items-baseline gap-2.5 text-chalk"
               >
-                <span className="tag text-blueline">
+                <span className="tag text-label">
                   {String(section.index).padStart(2, "0")}
                 </span>
                 <span className="font-display text-lg uppercase tracking-[0.08em]">

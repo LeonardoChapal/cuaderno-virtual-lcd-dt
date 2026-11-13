@@ -29,7 +29,7 @@ export default function PostCard({
 
       <header className="flex items-center justify-between gap-4 border-b border-blueline/30 px-5 py-3">
         <span className="tag text-amber">{code}</span>
-        <span className="tag text-blueline">{formatDate(post.createdAt)}</span>
+        <span className="tag text-label">{formatDate(post.createdAt)}</span>
       </header>
 
       <div className="p-5">

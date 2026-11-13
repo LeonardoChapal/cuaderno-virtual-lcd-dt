@@ -37,7 +37,7 @@ export default function LoginPage() {
           <LoginForm />
         </div>
 
-        <p className="tag mt-5 text-center text-blueline/70">
+        <p className="tag mt-5 text-center text-label">
           {site.school} · {site.author}
         </p>
       </div>

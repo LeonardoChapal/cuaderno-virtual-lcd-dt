@@ -13,7 +13,8 @@
   --color-ferro: #06121f; /* fondo: cianotipia más profunda        */
   --color-prussian: #0c2038; /* panel elevado                          */
   --color-prussian-2: #102a48; /* panel sobre panel                      */
-  --color-blueline: #2e6e9e; /* línea estructural media                */
+  --color-blueline: #2e6e9e; /* línea estructural media (solo trazos)  */
+  --color-label: #5d9ac6; /* texto de etiquetas: AA (≥4,7:1) sobre ferro, prussian y prussian-2 */
   --color-cyan: #5fd3f3; /* traza activa / hover                   */
   --color-chalk: #e8f1f8; /* tinta blanca sobre el azul             */
   --color-graphite: #8aa6bc; /* texto secundario                       */
@@ -134,7 +135,7 @@ body {
 /* Etiqueta técnica: códigos, cotas, metadatos. */
 @utility tag {
   font-family: var(--font-mono);
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.18em;
   line-height: 1;
@@ -228,6 +229,9 @@ body {
   *::before,
   *::after {
     animation-duration: 0.01ms !important;
+    /* Sin retardo: con `both` los elementos con delay quedarían invisibles
+       (p. ej. las cotas del tornillo, que entran hasta los 3,3 s). */
+    animation-delay: 0s !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }

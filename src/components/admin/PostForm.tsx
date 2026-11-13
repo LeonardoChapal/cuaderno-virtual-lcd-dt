@@ -58,7 +58,7 @@ function SubmitButton({
 
 const fieldClass =
   "w-full border border-blueline/50 bg-ferro px-3.5 py-2.5 text-sm text-chalk outline-none transition-colors focus:border-cyan";
-const labelClass = "tag mb-2 block text-blueline";
+const labelClass = "tag mb-2 block text-label";
 
 export default function PostForm({
   post,

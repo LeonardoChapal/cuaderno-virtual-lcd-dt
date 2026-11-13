@@ -33,7 +33,7 @@ export default function PlanoCard({
           aria-hidden
           className="absolute -right-px -top-px h-4 w-4 border-r-2 border-t-2 border-amber opacity-0 transition-opacity duration-300 group-hover:opacity-100"
         />
-        <span className="tag absolute bottom-3 left-4 text-blueline transition-colors group-hover:text-cyan">
+        <span className="tag absolute bottom-3 left-4 text-label transition-colors group-hover:text-cyan">
           {plano.code}
         </span>
       </div>
@@ -54,15 +54,15 @@ export default function PlanoCard({
         {/* Banda de rótulo */}
         <dl className="mt-auto grid grid-cols-3 border-t border-blueline/30 pt-3">
           <div>
-            <dt className="tag text-blueline">Escala</dt>
+            <dt className="tag text-label">Escala</dt>
             <dd className="font-mono text-xs text-chalk">S/E</dd>
           </div>
           <div>
-            <dt className="tag text-blueline">Lámina</dt>
+            <dt className="tag text-label">Lámina</dt>
             <dd className="font-mono text-xs text-chalk">{plano.code}</dd>
           </div>
           <div className="text-right">
-            <dt className="tag text-blueline">Entradas</dt>
+            <dt className="tag text-label">Entradas</dt>
             <dd className="font-mono text-xs text-amber">
               {String(count).padStart(2, "0")}
             </dd>

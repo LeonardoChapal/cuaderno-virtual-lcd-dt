@@ -30,7 +30,7 @@ export default function PageHeader({
   return (
     <header className="mx-auto max-w-6xl px-5 pb-10 pt-10 sm:px-8 sm:pt-14">
       <nav aria-label="Ruta de navegación" className="mb-7">
-        <ol className="tag flex flex-wrap items-center gap-2 text-blueline">
+        <ol className="tag flex flex-wrap items-center gap-2 text-label">
           {trail.map((crumb, index) => (
             <li key={`${crumb.label}-${index}`} className="flex items-center gap-2">
               {index > 0 ? (
@@ -68,7 +68,7 @@ export default function PageHeader({
             </p>
           ) : null}
         </div>
-        {meta ? <p className="tag shrink-0 text-blueline">{meta}</p> : null}
+        {meta ? <p className="tag shrink-0 text-label">{meta}</p> : null}
       </div>
     </header>
   );

@@ -53,7 +53,7 @@ export default async function SectionPage({
                 className="pointer-events-none absolute -left-px -top-px h-4 w-4 border-l-2 border-t-2 border-amber opacity-0 transition-opacity duration-300 group-hover:opacity-100"
               />
 
-              <span className="tag mb-5 text-blueline">
+              <span className="tag mb-5 text-label">
                 {String(section.index).padStart(2, "0")}.
                 {String(index + 1).padStart(2, "0")}
               </span>

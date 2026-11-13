@@ -57,7 +57,7 @@ export default async function AdminHome() {
           <p className="mb-2 font-display text-lg uppercase tracking-wide text-graphite">
             Empieza por la primera publicación
           </p>
-          <p className="text-sm text-graphite/70">
+          <p className="text-sm text-graphite">
             Elige a qué sección y subsección pertenece, y adjunta videos, fotos
             o enlaces.
           </p>
@@ -89,13 +89,13 @@ export default async function AdminHome() {
                     <span className="tag text-amber">
                       {SECTION_LABELS[post.section]}
                     </span>
-                    <span className="tag text-blueline">/</span>
-                    <span className="tag text-blueline">
+                    <span className="tag text-label">/</span>
+                    <span className="tag text-label">
                       {SUBSECTION_LABELS[post.subsection]}
                     </span>
                     {plano ? (
                       <>
-                        <span className="tag text-blueline">/</span>
+                        <span className="tag text-label">/</span>
                         <span className="tag text-cyan">{plano.title}</span>
                       </>
                     ) : null}
@@ -110,7 +110,7 @@ export default async function AdminHome() {
                     {post.title}
                   </p>
 
-                  <p className="tag mt-1.5 text-blueline">
+                  <p className="tag mt-1.5 text-label">
                     {formatDate(post.updatedAt)}
                     {post.media.length > 0
                       ? ` · ${Object.entries(counts)

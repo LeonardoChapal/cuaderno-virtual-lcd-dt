@@ -24,7 +24,7 @@ export default function Rotulo() {
       <div className="mx-auto max-w-6xl px-5 py-10 sm:px-8">
         <div className="mb-8 flex flex-wrap items-end justify-between gap-6">
           <div>
-            <p className="tag mb-2 text-blueline">Índice del cuaderno</p>
+            <p className="tag mb-2 text-label">Índice del cuaderno</p>
             <nav className="flex flex-wrap gap-x-6 gap-y-2">
               <Link
                 href="/home"
@@ -71,7 +71,7 @@ export default function Rotulo() {
               key={cell.label}
               className="border-b border-r border-blueline/30 px-4 py-3 last:border-r-0"
             >
-              <p className="tag mb-1.5 text-blueline">{cell.label}</p>
+              <p className="tag mb-1.5 text-label">{cell.label}</p>
               <p className="font-display text-sm uppercase tracking-wide text-chalk">
                 {cell.value}
               </p>
@@ -79,7 +79,7 @@ export default function Rotulo() {
           ))}
         </div>
 
-        <p className="tag mt-5 text-blueline">
+        <p className="tag mt-5 text-label">
           © {year} {site.author} — {site.location}
         </p>
       </div>

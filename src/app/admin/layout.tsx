@@ -32,7 +32,7 @@ export default async function AdminLayout({
             >
               Panel
             </Link>
-            <span className="tag text-blueline">{site.name}</span>
+            <span className="tag text-label">{site.name}</span>
           </div>
 
           <div className="flex items-center gap-5">
@@ -42,7 +42,7 @@ export default async function AdminLayout({
             >
               Ver el sitio
             </Link>
-            <span className="tag text-blueline">
+            <span className="tag text-label">
               {session.user.username ?? session.user.name}
             </span>
             <form action={logout}>

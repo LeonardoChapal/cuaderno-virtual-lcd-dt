@@ -30,7 +30,7 @@ export default function SectionPanel({ section }: { section: SectionDef }) {
           <span className="tag text-amber">
             Sección {String(section.index).padStart(2, "0")}
           </span>
-          <span className="tag text-blueline">
+          <span className="tag text-label">
             {section.planos.length} planos
           </span>
         </div>

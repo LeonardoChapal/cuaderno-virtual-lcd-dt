@@ -198,31 +198,31 @@ export default function HeroBlueprint() {
       <g
         fill={DIM}
         fontFamily="var(--font-mono)"
-        fontSize="13"
+        fontSize="16"
         textAnchor="middle"
       >
-        <text x="316" y="236" style={reveal(3.1)}>
+        <text x="316" y="234" style={reveal(3.1)}>
           145
         </text>
         <text x="396" y="64" style={reveal(3.15)}>
           36
         </text>
-        <text x="262" y="100" textAnchor="end" style={reveal(3.2)}>
+        <text x="262" y="92" textAnchor="end" style={reveal(3.2)}>
           M12 × 1,75
         </text>
       </g>
 
       <g
-        fill="var(--color-blueline)"
+        fill="var(--color-label)"
         fontFamily="var(--font-mono)"
-        fontSize="10"
-        letterSpacing="1.6"
+        fontSize="13"
+        letterSpacing="1"
         textAnchor="middle"
       >
-        <text x="80" y="238" style={reveal(3.3)}>
+        <text x="80" y="240" style={reveal(3.3)}>
           VISTA LATERAL
         </text>
-        <text x="316" y="278" style={reveal(3.3)}>
+        <text x="316" y="282" style={reveal(3.3)}>
           VISTA DE PERFIL — ESC. 1:1
         </text>
       </g>
