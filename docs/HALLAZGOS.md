@@ -91,3 +91,10 @@ Plan: 1) ejecutarlo primero en `dev-mejoras` con tu OK; 2) comprobar que `npm ru
 - **Vercel Functions** ([docs](https://vercel.com/docs/functions/limitations)): cuerpo de petición/respuesta máx. **4.5 MB** (413 `FUNCTION_PAYLOAD_TOO_LARGE`), en todos los planes. Duración: Hobby 300 s (default y máx.); Pro/Enterprise default 300 s, máx. 800 s.
 - **Vercel Blob** ([docs](https://vercel.com/docs/vercel-blob/usage-and-pricing)): tamaño máx. por archivo **5 TB**; client upload evita el límite de 4.5 MB; `multipart: true` recomendado para archivos >100 MB. Un blob de más de **512 MB no se cachea** en la CDN (cada acceso es un MISS con costo). Nuestro tope de 300 MB (`MAX_UPLOAD_MB`) queda bajo ambos.
 - **Neon Free** ([docs](https://neon.com/docs/introduction/plans)): las fuentes discrepan (1 GB vs 0.5 GB de almacenamiento por proyecto; 100 vs 50 CU-horas/mes); **10 ramas por proyecto**. Al pasarse suspende cómputo sin borrar datos. Conviene mirar el plan real en la consola de Neon. Con 4 posts, la base es diminuta.
+
+## 2026-11-12 — Bloque B: auditoría (solo lectura)
+
+Hallazgos priorizados y orden de tareas en `docs/PLAN.md`. Dos hechos nuevos:
+- **M5 ya existe:** `PostForm.tsx` sube con `upload(..., { multipart: true, onUploadProgress })` y muestra una barra por archivo. Falta pulirla (D1).
+- **Riesgo de los previews:** la guarda de BD no actúa dentro de Vercel. Si las variables *Preview* son las de producción, el panel del preview de `mejoras` escribe en producción. Pendiente de que Leonardo lo confirme; hasta entonces no se hace push de `mejoras`.
+- En esta sesión no hay herramienta de PowerShell (solo Bash), así que no hacen falta reglas `deny` para PowerShell en `.claude/settings.json`.

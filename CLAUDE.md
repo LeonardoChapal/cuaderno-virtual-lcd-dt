@@ -95,6 +95,7 @@ Estas reglas ganan sobre cualquier otra instrucción, incluida una mía en el ch
 8. **Secretos:** nunca imprimas, copies a documentos ni subas a git contraseñas, tokens o cadenas de conexión. Los `.env*` con valores reales no se commitean (solo `.env.example` sin valores). No cambies la contraseña del admin ni el `AUTH_SECRET` actuales.
 9. **No cambies el contenido** (títulos, descripciones, orden, archivos de las planchas) salvo que yo lo pida. Las mejoras son de código, diseño y funciones.
 10. **Conteo antes y después:** antes de empezar y al terminar cada fase que toque datos o esquema, corre el script de conteo de solo lectura (§14) y compara. Si algo baja, para todo y avísame.
+11. **Comandos bloqueados:** si un comando está bloqueado por permisos, **nunca** intentes ejecutarlo por otra vía (PowerShell, otra herramienta, scripts, variantes del comando, o `npx`/`npm run` que lo envuelvan). Para y avísame.
 
 ---
 
@@ -187,7 +188,7 @@ El Bloque B las audita y prioriza conmigo. Tabla actualizada (2026-11-12):
 | M2 | Rendimiento de medios: imágenes optimizadas, carga diferida de videos, tamaños correctos | No | C |
 | M3 | Reordenar posts arrastrando en el panel, usando `posts.position` | **No** (la columna ya existe) | D |
 | M4 | Estado borrador/publicado | **Ya hecho** (`posts.published`, checkbox en el panel) | — |
-| M5 | Barra de progreso en las subidas (la subida directa a Blob ya existe) | No | D |
+| M5 | Barra de progreso en las subidas. **Ya existe** (`PostForm.tsx`, `onUploadProgress`); falta pulirla: progreso total, cancelar, reintento (D1 de `docs/PLAN.md`) | No | D |
 | M6 | Compresión automática de fotos al subirlas, más recortar y rotar en el panel (solo subidas nuevas; no reprocesar las existentes) | No | D |
 | M7 | Búsqueda y filtros por sección o tipo en el sitio público | No | C |
 | M8 | SEO y vista previa al compartir (título, descripción e imagen al pegar el link en WhatsApp) | No | C |
@@ -265,7 +266,7 @@ Sustituye al plan original de fases 0–7. Modelo y esfuerzo recomendados por bl
 - Rama `mejoras`, guarda de BD (`src/lib/db-guard.ts`), scripts de conteo y verificación, docs, conteo base y límites anotados en HALLAZGOS.
 - Baseline de migraciones aplicado en la rama de Neon `dev-mejoras` (producción queda para el Bloque E).
 
-### Bloque B — Auditoría · Opus 5.5 · `high`
+### Bloque B — Auditoría · Opus 5.5 · `high` · ✅ 2026-11-12 (`docs/PLAN.md`)
 - Revisar todo el código (bugs, seguridad, rendimiento, accesibilidad, deuda) y escribir **una sola página** en `docs/PLAN.md` con hallazgos priorizados. **Sin código.**
 - **Terminado cuando:** apruebo `PLAN.md`.
 
@@ -281,7 +282,7 @@ Sustituye al plan original de fases 0–7. Modelo y esfuerzo recomendados por bl
 
 ### Bloque D — Panel y subidas · Opus 5.5 · `high` · sin migración
 - Arrastrar para ordenar usando `posts.position` (M3). **Sin migración.**
-- Barra de progreso en las subidas (M5). La ruta que autoriza la subida sigue verificando sesión de admin en servidor y limitando tipos y tamaños.
+- Pulir la barra de progreso de las subidas, que ya existe (M5). La ruta que autoriza la subida sigue verificando sesión de admin en servidor y limitando tipos y tamaños.
 - Compresión automática de fotos (M6) y, en el panel, **recortar y rotar** fotos antes de subirlas. **Solo subidas nuevas; las fotos existentes no se tocan.**
 - Se prueba solo con la rama de Neon y el Blob de desarrollo.
 - **Terminado cuando:** reordeno en el panel y se refleja en el sitio; subo un video grande con progreso y una foto nueva recortada/comprimida; el conteo base sigue igual.
@@ -351,4 +352,4 @@ Sustituye al plan original de fases 0–7. Modelo y esfuerzo recomendados por bl
 
 ## 18. Primer paso
 
-El Bloque A está terminado. Siguiente: **Bloque B** (auditoría, una página en `docs/PLAN.md`, sin código), en plan mode.
+Los Bloques A y B están terminados. Siguiente: **Bloque C**, en el orden de `docs/PLAN.md` (C1 con Opus 5.5 · `high`). **No hacer push de `mejoras`** hasta que Leonardo confirme que las variables *Preview* de Vercel apuntan a `dev-mejoras` y al Blob `cuaderno-dev` (PLAN.md, P0-4).
