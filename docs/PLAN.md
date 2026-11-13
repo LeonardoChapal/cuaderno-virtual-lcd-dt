@@ -32,7 +32,7 @@ Revisión de todo `src/` (auth, acciones del panel, subida, sitio público, esti
 ## Bloque C: orden de tareas (un commit cada una)
 | # | Tarea | Modelo · esfuerzo |
 |---|---|---|
-| C1 | P0 1-3: `db.batch` en crear/editar, confirmar al eliminar, bloquear Guardar durante subidas | **Opus 5.5 · high** (toca escritura de datos) |
+| C1 ✅ 2026-11-12 | P0 1-3: `db.batch` en crear/editar, confirmar al eliminar, bloquear Guardar durante subidas | **Opus 5.5 · high** (toca escritura de datos) |
 | C2 | P1 5, 6, 8, 9: validar URLs y `position`, quitar respaldo plano, cabeceras, `try` en upload. **Antes de quitar el respaldo:** comprobar en solo lectura en `dev-mejoras` que existe el usuario `admin` con `password_hash` en formato bcrypt (sin mostrar el hash). Si no existe, parar y avisar | Sonnet 5.5 · medium |
 | C3 | Pulido §9 (10-12) + revisión del hero y las tarjetas en celular | Sonnet 5.5 · medium |
 | C4 | Limpieza (14) + aviso de `.mov` (15) | Sonnet 5.5 · low |

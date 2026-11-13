@@ -36,12 +36,19 @@ function newKey() {
   return Math.random().toString(36).slice(2);
 }
 
-function SubmitButton({ label }: { label: string }) {
+function SubmitButton({
+  label,
+  blocked,
+}: {
+  label: string;
+  /** Hay subidas en curso: guardar ahora perdería esos archivos. */
+  blocked: boolean;
+}) {
   const { pending } = useFormStatus();
   return (
     <button
       type="submit"
-      disabled={pending}
+      disabled={pending || blocked}
       className="tag border border-amber bg-amber px-6 py-3.5 text-ferro transition-colors hover:bg-transparent hover:text-amber disabled:cursor-not-allowed disabled:opacity-60"
     >
       {pending ? "Guardando…" : label}
@@ -174,7 +181,15 @@ export default function PostForm({
   }
 
   return (
-    <form action={formAction} className="flex flex-col gap-8">
+    <form
+      action={formAction}
+      onSubmit={(event) => {
+        // Segunda barrera (p. ej. Enter en un campo): no guardar con subidas
+        // en curso, porque esos adjuntos se perderían sin aviso.
+        if (uploading) event.preventDefault();
+      }}
+      className="flex flex-col gap-8"
+    >
       <input type="hidden" name="media" value={serializedMedia} />
 
       {/* ---- Datos de la publicación ------------------------------------ */}
@@ -503,7 +518,7 @@ export default function PostForm({
       ) : null}
 
       <div className="flex flex-wrap items-center gap-3">
-        <SubmitButton label={submitLabel} />
+        <SubmitButton label={submitLabel} blocked={uploading} />
         <Link
           href="/admin"
           className="tag border border-blueline/50 px-6 py-3.5 text-graphite transition-colors hover:border-cyan hover:text-cyan"

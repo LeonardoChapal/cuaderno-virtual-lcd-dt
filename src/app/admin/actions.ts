@@ -69,6 +69,19 @@ function parseMedia(raw: FormDataEntryValue | null): MediaInput[] {
   });
 }
 
+/** Filas de post_media para un post, en el orden recibido. */
+function mediaRows(postId: string, media: MediaInput[]) {
+  return media.map((item, index) => ({
+    postId,
+    type: item.type,
+    url: item.url,
+    label: item.label ?? null,
+    fileName: item.fileName ?? null,
+    fileSize: item.fileSize ?? null,
+    position: index,
+  }));
+}
+
 /** Refresca las páginas públicas afectadas por un cambio. */
 function revalidateFor(
   section: SectionSlug,
@@ -163,33 +176,31 @@ export async function createPost(
   if ("error" in parsed) return parsed;
 
   try {
-    const [created] = await db
-      .insert(posts)
-      .values({
-        title: parsed.title,
-        slug: `${parsed.slug}-${Date.now().toString(36)}`,
-        summary: parsed.summary,
-        body: parsed.body,
-        section: parsed.section,
-        subsection: parsed.subsection,
-        planoSlug: parsed.planoSlug,
-        published: parsed.published,
-        position: parsed.position,
-      })
-      .returning({ id: posts.id });
+    // El id se genera aquí para poder insertar el post y sus adjuntos en
+    // una sola transacción (db.batch no deja leer resultados intermedios).
+    const id = crypto.randomUUID();
+
+    const insertPost = db.insert(posts).values({
+      id,
+      title: parsed.title,
+      slug: `${parsed.slug}-${Date.now().toString(36)}`,
+      summary: parsed.summary,
+      body: parsed.body,
+      section: parsed.section,
+      subsection: parsed.subsection,
+      planoSlug: parsed.planoSlug,
+      published: parsed.published,
+      position: parsed.position,
+    });
 
     if (parsed.media.length > 0) {
-      await db.insert(postMedia).values(
-        parsed.media.map((item, index) => ({
-          postId: created.id,
-          type: item.type,
-          url: item.url,
-          label: item.label ?? null,
-          fileName: item.fileName ?? null,
-          fileSize: item.fileSize ?? null,
-          position: index,
-        })),
-      );
+      // Todo o nada: si falla un adjunto, tampoco se crea el post.
+      await db.batch([
+        insertPost,
+        db.insert(postMedia).values(mediaRows(id, parsed.media)),
+      ]);
+    } else {
+      await insertPost;
     }
 
     revalidateFor(parsed.section, parsed.subsection, parsed.planoSlug);
@@ -233,7 +244,11 @@ export async function updatePost(
       .where(eq(posts.id, id))
       .limit(1);
 
-    await db
+    if (!previous) {
+      return { error: "Esta publicación ya no existe." };
+    }
+
+    const updatePostRow = db
       .update(posts)
       .set({
         title: parsed.title,
@@ -249,25 +264,22 @@ export async function updatePost(
       .where(eq(posts.id, id));
 
     // Se reemplaza la lista de adjuntos por la enviada desde el formulario.
-    await db.delete(postMedia).where(eq(postMedia.postId, id));
+    // Va en una sola transacción: si el INSERT falla, el DELETE se deshace
+    // y el post conserva sus adjuntos anteriores.
+    const deleteMedia = db.delete(postMedia).where(eq(postMedia.postId, id));
+
     if (parsed.media.length > 0) {
-      await db.insert(postMedia).values(
-        parsed.media.map((item, index) => ({
-          postId: id,
-          type: item.type,
-          url: item.url,
-          label: item.label ?? null,
-          fileName: item.fileName ?? null,
-          fileSize: item.fileSize ?? null,
-          position: index,
-        })),
-      );
+      await db.batch([
+        updatePostRow,
+        deleteMedia,
+        db.insert(postMedia).values(mediaRows(id, parsed.media)),
+      ]);
+    } else {
+      await db.batch([updatePostRow, deleteMedia]);
     }
 
     // Refresca tanto el destino nuevo como el anterior, por si se movió.
-    if (previous) {
-      revalidateFor(previous.section, previous.subsection, previous.planoSlug);
-    }
+    revalidateFor(previous.section, previous.subsection, previous.planoSlug);
     revalidateFor(parsed.section, parsed.subsection, parsed.planoSlug);
   } catch (error) {
     console.error("[admin] updatePost falló:", error);

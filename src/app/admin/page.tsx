@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import DeletePostButton from "@/components/admin/DeletePostButton";
 import { isDatabaseConfigured } from "@/db";
 import { listAllPosts } from "@/lib/posts";
 import {
@@ -9,8 +10,6 @@ import {
   getPlano,
 } from "@/lib/site";
 import { formatDate } from "@/lib/slug";
-
-import { deletePost } from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -131,15 +130,7 @@ export default async function AdminHome() {
                   >
                     Editar
                   </Link>
-                  <form action={deletePost}>
-                    <input type="hidden" name="id" value={post.id} />
-                    <button
-                      type="submit"
-                      className="tag border border-blueline/50 px-4 py-2.5 text-graphite transition-colors hover:border-amber hover:text-amber"
-                    >
-                      Eliminar
-                    </button>
-                  </form>
+                  <DeletePostButton id={post.id} title={post.title} />
                 </div>
               </li>
             );
