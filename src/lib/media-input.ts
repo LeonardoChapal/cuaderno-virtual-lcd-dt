@@ -108,10 +108,3 @@ export function parseMediaInput(
 
   return result;
 }
-
-/** Entero válido para la columna `position` (acepta decimales y basura). */
-export function parsePosition(raw: FormDataEntryValue | null): number {
-  const value = Math.trunc(Number(raw ?? 0));
-  if (!Number.isFinite(value)) return 0;
-  return Math.max(-MAX_INT, Math.min(MAX_INT, value));
-}

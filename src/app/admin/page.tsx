@@ -1,13 +1,16 @@
 import Link from "next/link";
 
-import DeletePostButton from "@/components/admin/DeletePostButton";
+import SortablePostGroup, {
+  type AdminPostItem,
+} from "@/components/admin/SortablePostGroup";
 import { isDatabaseConfigured } from "@/db";
+import type { PostWithMedia } from "@/db/schema";
 import { listAllPosts } from "@/lib/posts";
 import {
-  SECTION_LABELS,
+  SECTIONS,
   SUBSECTION_LABELS,
-  getSectionByValue,
   getPlano,
+  getSectionByValue,
 } from "@/lib/site";
 import { formatDate } from "@/lib/slug";
 
@@ -20,8 +23,72 @@ const MEDIA_LABELS: Record<string, string> = {
   link: "enlace",
 };
 
+type Group = { key: string; title: string; rank: number; posts: PostWithMedia[] };
+
+function describeMedia(post: PostWithMedia): string {
+  if (post.media.length === 0) return "sin adjuntos";
+  const counts = post.media.reduce<Record<string, number>>((acc, item) => {
+    acc[item.type] = (acc[item.type] ?? 0) + 1;
+    return acc;
+  }, {});
+  return Object.entries(counts)
+    .map(([type, count]) => `${count} ${MEDIA_LABELS[type] ?? type}`)
+    .join(", ");
+}
+
+/**
+ * Agrupa por sección + subsección + plano, que es lo que lista cada página
+ * pública, y ordena los grupos como la navegación del sitio (§7). Dentro de
+ * cada grupo, el mismo orden que el sitio: `position` y luego más reciente.
+ */
+function groupPosts(posts: PostWithMedia[]): Group[] {
+  const groups = new Map<string, Group>();
+
+  for (const post of posts) {
+    const sectionIndex = SECTIONS.findIndex((item) => item.value === post.section);
+    const section = getSectionByValue(post.section);
+    const subIndex = section?.order.indexOf(post.subsection) ?? 9;
+    const plano =
+      section && post.planoSlug ? getPlano(section, post.planoSlug) : undefined;
+    const planoIndex =
+      section && post.planoSlug
+        ? section.planos.findIndex((item) => item.slug === post.planoSlug)
+        : -1;
+
+    const key = `${post.section}|${post.subsection}|${post.planoSlug ?? ""}`;
+    if (!groups.has(key)) {
+      groups.set(key, {
+        key,
+        title: [
+          section?.title ?? post.section,
+          SUBSECTION_LABELS[post.subsection],
+          post.planoSlug ? (plano?.title ?? post.planoSlug) : null,
+        ]
+          .filter(Boolean)
+          .join(" / "),
+        // Orden de la navegación: sección → subsección → plano.
+        rank: sectionIndex * 10_000 + subIndex * 100 + (planoIndex + 1),
+        posts: [],
+      });
+    }
+    groups.get(key)!.posts.push(post);
+  }
+
+  return [...groups.values()]
+    .sort((a, b) => a.rank - b.rank)
+    .map((group) => ({
+      ...group,
+      posts: group.posts.sort(
+        (a, b) =>
+          a.position - b.position ||
+          b.createdAt.getTime() - a.createdAt.getTime(),
+      ),
+    }));
+}
+
 export default async function AdminHome() {
   const posts = await listAllPosts();
+  const groups = groupPosts(posts);
 
   return (
     <>
@@ -33,7 +100,7 @@ export default async function AdminHome() {
           <p className="mt-1 text-sm text-graphite">
             {posts.length === 0
               ? "Aún no hay publicaciones."
-              : `${posts.length} ${posts.length === 1 ? "publicación" : "publicaciones"} en el cuaderno.`}
+              : `${posts.length} ${posts.length === 1 ? "publicación" : "publicaciones"} en el cuaderno, agrupadas como en el sitio. El orden de cada grupo es el que se ve en público.`}
           </p>
         </div>
 
@@ -63,79 +130,26 @@ export default async function AdminHome() {
           </p>
         </div>
       ) : (
-        <ul className="flex flex-col gap-3">
-          {posts.map((post) => {
-            const sectionDef = getSectionByValue(post.section);
-            const plano =
-              sectionDef && post.planoSlug
-                ? getPlano(sectionDef, post.planoSlug)
-                : undefined;
-
-            const counts = post.media.reduce<Record<string, number>>(
-              (acc, item) => {
-                acc[item.type] = (acc[item.type] ?? 0) + 1;
-                return acc;
-              },
-              {},
-            );
-
-            return (
-              <li
-                key={post.id}
-                className="flex flex-wrap items-center justify-between gap-4 border border-blueline/40 bg-prussian/90 px-5 py-4"
-              >
-                <div className="min-w-0 flex-1">
-                  <div className="mb-1.5 flex flex-wrap items-center gap-2">
-                    <span className="tag text-amber">
-                      {SECTION_LABELS[post.section]}
-                    </span>
-                    <span className="tag text-label">/</span>
-                    <span className="tag text-label">
-                      {SUBSECTION_LABELS[post.subsection]}
-                    </span>
-                    {plano ? (
-                      <>
-                        <span className="tag text-label">/</span>
-                        <span className="tag text-cyan">{plano.title}</span>
-                      </>
-                    ) : null}
-                    {!post.published ? (
-                      <span className="tag border border-graphite/40 px-2 py-0.5 text-graphite">
-                        Borrador
-                      </span>
-                    ) : null}
-                  </div>
-
-                  <p className="truncate font-display text-lg uppercase tracking-wide text-chalk">
-                    {post.title}
-                  </p>
-
-                  <p className="tag mt-1.5 text-label">
-                    {formatDate(post.updatedAt)}
-                    {post.media.length > 0
-                      ? ` · ${Object.entries(counts)
-                          .map(
-                            ([type, count]) =>
-                              `${count} ${MEDIA_LABELS[type] ?? type}`,
-                          )
-                          .join(", ")}`
-                      : " · sin adjuntos"}
-                  </p>
-                </div>
-
-                <div className="flex shrink-0 items-center gap-2">
-                  <Link
-                    href={`/admin/posts/${post.id}`}
-                    className="tag border border-blueline/50 px-4 py-2.5 text-chalk transition-colors hover:border-cyan hover:text-cyan"
-                  >
-                    Editar
-                  </Link>
-                  <DeletePostButton id={post.id} title={post.title} />
-                </div>
-              </li>
-            );
-          })}
-        </ul>
+        groups.map((group) => {
+          const items: AdminPostItem[] = group.posts.map((post) => ({
+            id: post.id,
+            title: post.title,
+            published: post.published,
+            meta: `${formatDate(post.updatedAt)} · ${describeMedia(post)}`,
+          }));
+          return (
+            <SortablePostGroup
+              // Cambia solo si entra o sale una publicación del grupo (no al
+              // reordenar): así la lista se reinicia tras eliminar o crear.
+              key={`${group.key}:${items
+                .map((item) => item.id)
+                .sort()
+                .join(",")}`}
+              title={group.title}
+              items={items}
+            />
+          );
+        })
       )}
     </>
   );

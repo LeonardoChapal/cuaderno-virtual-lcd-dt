@@ -1,6 +1,6 @@
 "use server";
 
-import { eq } from "drizzle-orm";
+import { and, eq, inArray, isNull, min, sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
@@ -13,11 +13,7 @@ import {
   posts,
 } from "@/db/schema";
 import { safeErrorMessage } from "@/lib/diag";
-import {
-  type MediaInput,
-  parseMediaInput,
-  parsePosition,
-} from "@/lib/media-input";
+import { type MediaInput, parseMediaInput } from "@/lib/media-input";
 import { getSectionByValue } from "@/lib/site";
 import { slugify } from "@/lib/slug";
 
@@ -66,6 +62,37 @@ function revalidateFor(
   }
 }
 
+type Group = {
+  section: SectionSlug;
+  subsection: SubsectionSlug;
+  planoSlug: string | null;
+};
+
+/** Condición SQL de "mismo grupo": misma sección, subsección y plano. */
+function sameGroup(group: Group) {
+  return and(
+    eq(posts.section, group.section),
+    eq(posts.subsection, group.subsection),
+    group.planoSlug === null
+      ? isNull(posts.planoSlug)
+      : eq(posts.planoSlug, group.planoSlug),
+  );
+}
+
+type Database = NonNullable<ReturnType<typeof tryGetDb>>;
+
+/**
+ * Posición para que un post quede el primero de su grupo (el orden público
+ * es `position` ascendente). En un grupo vacío, 0.
+ */
+async function firstPositionIn(db: Database, group: Group): Promise<number> {
+  const [row] = await db
+    .select({ value: min(posts.position) })
+    .from(posts)
+    .where(sameGroup(group));
+  return row?.value === null || row?.value === undefined ? 0 : row.value - 1;
+}
+
 type ParsedForm = {
   title: string;
   slug: string;
@@ -75,7 +102,6 @@ type ParsedForm = {
   subsection: SubsectionSlug;
   planoSlug: string | null;
   published: boolean;
-  position: number;
   media: MediaInput[];
 };
 
@@ -120,7 +146,6 @@ function parseForm(formData: FormData): ParsedForm | { error: string } {
     subsection,
     planoSlug,
     published: formData.get("published") === "on",
-    position: parsePosition(formData.get("position")),
     media,
   };
 }
@@ -149,6 +174,9 @@ export async function createPost(
     // El id se genera aquí para poder insertar el post y sus adjuntos en
     // una sola transacción (db.batch no deja leer resultados intermedios).
     const id = crypto.randomUUID();
+    // Las publicaciones nuevas entran las primeras de su grupo; luego se
+    // pueden mover arrastrando en el panel.
+    const position = await firstPositionIn(db, parsed);
 
     const insertPost = db.insert(posts).values({
       id,
@@ -160,7 +188,7 @@ export async function createPost(
       subsection: parsed.subsection,
       planoSlug: parsed.planoSlug,
       published: parsed.published,
-      position: parsed.position,
+      position,
     });
 
     if (parsed.media.length > 0) {
@@ -218,6 +246,16 @@ export async function updatePost(
       return { error: "Esta publicación ya no existe." };
     }
 
+    // El orden se cambia arrastrando en el panel, no desde aquí. Solo si la
+    // publicación cambia de grupo entra la primera en el nuevo.
+    const movedGroup =
+      previous.section !== parsed.section ||
+      previous.subsection !== parsed.subsection ||
+      previous.planoSlug !== parsed.planoSlug;
+    const newPosition = movedGroup
+      ? await firstPositionIn(db, parsed)
+      : undefined;
+
     const updatePostRow = db
       .update(posts)
       .set({
@@ -228,7 +266,7 @@ export async function updatePost(
         subsection: parsed.subsection,
         planoSlug: parsed.planoSlug,
         published: parsed.published,
-        position: parsed.position,
+        ...(newPosition === undefined ? {} : { position: newPosition }),
         updatedAt: new Date(),
       })
       .where(eq(posts.id, id));
@@ -294,4 +332,90 @@ export async function deletePost(formData: FormData): Promise<void> {
   }
 
   revalidatePath("/admin");
+}
+
+/* -------------------------------------------------------------------------
+ * Reordenar (arrastrar en el panel)
+ * ---------------------------------------------------------------------- */
+
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/**
+ * Guarda el orden de un grupo (sección + subsección + plano): cada post recibe
+ * como `position` su índice en `ids`. Exige que `ids` sea exactamente el
+ * grupo completo, para no mezclar órdenes si la lista cambió en otra pestaña.
+ * No toca `updated_at`: reordenar no es editar el contenido.
+ */
+export async function reorderPosts(ids: string[]): Promise<ActionState> {
+  await requireSession();
+
+  if (
+    !Array.isArray(ids) ||
+    ids.length === 0 ||
+    ids.length > 500 ||
+    !ids.every((id) => typeof id === "string" && UUID_RE.test(id)) ||
+    new Set(ids).size !== ids.length
+  ) {
+    return { error: "El orden recibido no es válido. Recarga la página." };
+  }
+
+  const db = tryGetDb();
+  if (!db) {
+    return { error: "No hay conexión con la base de datos." };
+  }
+
+  try {
+    const rows = await db
+      .select({
+        id: posts.id,
+        section: posts.section,
+        subsection: posts.subsection,
+        planoSlug: posts.planoSlug,
+      })
+      .from(posts)
+      .where(inArray(posts.id, ids));
+
+    if (rows.length !== ids.length) {
+      return { error: "Alguna publicación ya no existe. Recarga la página." };
+    }
+
+    const [first] = rows;
+    const group: Group = {
+      section: first.section,
+      subsection: first.subsection,
+      planoSlug: first.planoSlug,
+    };
+    if (
+      rows.some(
+        (row) =>
+          row.section !== group.section ||
+          row.subsection !== group.subsection ||
+          row.planoSlug !== group.planoSlug,
+      )
+    ) {
+      return { error: "Solo se puede ordenar dentro de un mismo grupo." };
+    }
+
+    const [{ total }] = await db
+      .select({ total: sql<number>`count(*)::int` })
+      .from(posts)
+      .where(sameGroup(group));
+    if (total !== ids.length) {
+      return { error: "La lista cambió mientras tanto. Recarga la página." };
+    }
+
+    // Todas las posiciones en una sola transacción.
+    const updates = ids.map((id, index) =>
+      db.update(posts).set({ position: index }).where(eq(posts.id, id)),
+    );
+    await db.batch(updates as [(typeof updates)[number], ...typeof updates]);
+
+    revalidateFor(group.section, group.subsection, group.planoSlug);
+    revalidatePath("/admin");
+    return {};
+  } catch (error) {
+    console.error("[admin] reorderPosts falló:", safeErrorMessage(error));
+    return { error: "No se pudo guardar el orden. Inténtalo de nuevo." };
+  }
 }

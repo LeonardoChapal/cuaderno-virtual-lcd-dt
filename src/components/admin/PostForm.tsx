@@ -420,18 +420,11 @@ export default function PostForm({
             </div>
           ) : null}
 
-          <div>
-            <label htmlFor="position" className={labelClass}>
-              Orden
-            </label>
-            <input
-              id="position"
-              name="position"
-              type="number"
-              defaultValue={post?.position ?? 0}
-              className={fieldClass}
-            />
-          </div>
+          <p className="text-sm text-graphite sm:col-span-2">
+            El orden en el sitio se cambia arrastrando las publicaciones en la
+            lista del panel. Una publicación nueva aparece la primera de su
+            grupo.
+          </p>
 
           <label className="flex items-end gap-3 pb-2.5 text-sm text-chalk">
             <input

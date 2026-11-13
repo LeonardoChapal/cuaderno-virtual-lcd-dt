@@ -32,3 +32,9 @@ Decisiones de arquitectura numeradas, con el porqué y las alternativas descarta
 **Descarga:** se usa la URL del Blob con `?download=1`, que hace que Vercel Blob responda con `Content-Disposition: attachment`. El atributo `download` por sí solo se ignora entre orígenes distintos.
 **Descartado:** visor propio con pointer events (más código y más bugs en móvil); `react-medium-image-zoom` (hace zoom pero no paneo ni galería); abrir la imagen en una pestaña nueva (lo que había: sin zoom controlado ni descarga).
 **Eliminada de paso:** la dependencia `motion` 13.1.0, que estaba declarada y no se usaba (C4). Las animaciones son CSS puro.
+
+## D-007 — Ordenar arrastrando con dnd-kit, sin migración (2026-11-12)
+**Decisión:** el panel agrupa las publicaciones por sección + subsección + plano (lo que lista cada página pública) y cada grupo se ordena arrastrando (`@dnd-kit/core` 6.3.1 + `@dnd-kit/sortable` 10.0.0) o con botones ↑/↓. Cada cambio llama a `reorderPosts(ids)`, que verifica la sesión, que los ids sean exactamente el grupo completo y escribe `position = índice` en una sola transacción (`db.batch`). No cambia `updated_at`. Se quitó el campo numérico "Orden" del formulario.
+**Posts nuevos o movidos de grupo:** entran los primeros del grupo (`position = mínima − 1`). Antes ya aparecían primeros por fecha (todos tenían 0); así queda explícito y estable después de reordenar.
+**Por qué:** la columna `posts.position` ya existía y el sitio ya ordenaba por ella, así que no hace falta migración (§3). dnd-kit es MIT, accesible (teclado y anuncios para lectores de pantalla, traducidos al español) y funciona con dedo usando un asa con `touch-action: none`, sin bloquear el scroll del resto de la fila.
+**Descartado:** `@dnd-kit/react` 0.x (API nueva aún inestable); arrastre HTML5 nativo (no funciona con dedo ni con teclado); seguir con el número "Orden" (poco claro y propenso a empates).
