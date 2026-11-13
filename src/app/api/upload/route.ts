@@ -30,7 +30,15 @@ const MAX_UPLOAD_BYTES =
   Number(process.env.MAX_UPLOAD_MB ?? 300) * 1024 * 1024;
 
 export async function POST(request: Request): Promise<NextResponse> {
-  const body = (await request.json()) as HandleUploadBody;
+  let body: HandleUploadBody;
+  try {
+    body = (await request.json()) as HandleUploadBody;
+  } catch {
+    return NextResponse.json(
+      { error: "Petición inválida." },
+      { status: 400 },
+    );
+  }
 
   try {
     const result = await handleUpload({

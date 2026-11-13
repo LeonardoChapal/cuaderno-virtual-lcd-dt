@@ -26,45 +26,37 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
         if (!username || !password) return null;
 
+        // El administrador vive en Neon con la clave hasheada. Ya no hay
+        // respaldo con ADMIN_PASSWORD en texto plano: sin base de datos, no
+        // se puede entrar.
         const db = tryGetDb();
+        if (!db) return null;
 
-        // Camino normal: el administrador vive en Neon con la clave hasheada.
-        if (db) {
-          let record: typeof users.$inferSelect | undefined;
-          try {
-            [record] = await db
-              .select()
-              .from(users)
-              .where(eq(users.username, username))
-              .limit(1);
-          } catch (error) {
-            console.error(
-              "[auth] La consulta del usuario falló:",
-              safeErrorMessage(error),
-            );
-            return null;
-          }
-
-          if (!record) return null;
-          if (!(await verifyPassword(password, record.passwordHash))) {
-            return null;
-          }
-
-          return {
-            id: record.id,
-            name: record.name ?? record.username,
-            username: record.username,
-          };
+        let record: typeof users.$inferSelect | undefined;
+        try {
+          [record] = await db
+            .select()
+            .from(users)
+            .where(eq(users.username, username))
+            .limit(1);
+        } catch (error) {
+          console.error(
+            "[auth] La consulta del usuario falló:",
+            safeErrorMessage(error),
+          );
+          return null;
         }
 
-        // Respaldo para desarrollo local antes de conectar la base de datos:
-        // se comparan las credenciales contra las variables de entorno.
-        const envUser = process.env.ADMIN_USERNAME;
-        const envPassword = process.env.ADMIN_PASSWORD;
-        if (!envUser || !envPassword) return null;
-        if (username !== envUser || password !== envPassword) return null;
+        if (!record) return null;
+        if (!(await verifyPassword(password, record.passwordHash))) {
+          return null;
+        }
 
-        return { id: "env-admin", name: envUser, username: envUser };
+        return {
+          id: record.id,
+          name: record.name ?? record.username,
+          username: record.username,
+        };
       },
     }),
   ],

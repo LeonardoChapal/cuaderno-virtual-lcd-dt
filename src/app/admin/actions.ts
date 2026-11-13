@@ -7,67 +7,32 @@ import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { tryGetDb } from "@/db";
 import {
-  type MediaType,
   type SectionSlug,
   type SubsectionSlug,
   postMedia,
   posts,
 } from "@/db/schema";
 import { safeErrorMessage } from "@/lib/diag";
+import {
+  type MediaInput,
+  parseMediaInput,
+  parsePosition,
+} from "@/lib/media-input";
 import { getSectionByValue } from "@/lib/site";
 import { slugify } from "@/lib/slug";
 
 export type ActionState = { error?: string };
 
-const MEDIA_TYPES: MediaType[] = ["video_upload", "youtube", "image", "link"];
 const SECTION_VALUES: SectionSlug[] = [
   "diseno_aplicado",
   "fundamentacion_tecnologica",
 ];
 const SUBSECTION_VALUES: SubsectionSlug[] = ["videos", "consultas", "planos"];
 
-type MediaInput = {
-  type: MediaType;
-  url: string;
-  label?: string | null;
-  fileName?: string | null;
-  fileSize?: number | null;
-};
-
 /** Toda acción del panel exige sesión activa. */
 async function requireSession() {
   const session = await auth();
   if (!session?.user) redirect("/login");
-}
-
-function parseMedia(raw: FormDataEntryValue | null): MediaInput[] {
-  if (!raw) return [];
-  let parsed: unknown;
-  try {
-    parsed = JSON.parse(String(raw));
-  } catch {
-    return [];
-  }
-  if (!Array.isArray(parsed)) return [];
-
-  return parsed.flatMap((item): MediaInput[] => {
-    if (typeof item !== "object" || item === null) return [];
-    const candidate = item as Record<string, unknown>;
-    const type = candidate.type as MediaType;
-    const url = String(candidate.url ?? "").trim();
-    if (!MEDIA_TYPES.includes(type) || !url) return [];
-
-    return [
-      {
-        type,
-        url,
-        label: candidate.label ? String(candidate.label).slice(0, 200) : null,
-        fileName: candidate.fileName ? String(candidate.fileName) : null,
-        fileSize:
-          typeof candidate.fileSize === "number" ? candidate.fileSize : null,
-      },
-    ];
-  });
 }
 
 /** Filas de post_media para un post, en el orden recibido. */
@@ -140,6 +105,9 @@ function parseForm(formData: FormData): ParsedForm | { error: string } {
     }
   }
 
+  const media = parseMediaInput(formData.get("media"));
+  if ("error" in media) return media;
+
   const customSlug = String(formData.get("slug") ?? "").trim();
 
   return {
@@ -151,8 +119,8 @@ function parseForm(formData: FormData): ParsedForm | { error: string } {
     subsection,
     planoSlug,
     published: formData.get("published") === "on",
-    position: Number(formData.get("position") ?? 0) || 0,
-    media: parseMedia(formData.get("media")),
+    position: parsePosition(formData.get("position")),
+    media,
   };
 }
 
