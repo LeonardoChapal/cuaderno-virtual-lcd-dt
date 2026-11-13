@@ -1,0 +1,42 @@
+{
+  "permissions": {
+    "deny": [
+      "Bash(drizzle-kit push*)",
+      "Bash(npx drizzle-kit push*)",
+      "Bash(drizzle-kit drop*)",
+      "Bash(npx drizzle-kit drop*)",
+      "Bash(drizzle-kit migrate*)",
+      "Bash(npx drizzle-kit migrate*)",
+      "Bash(npm run db:migrate*)",
+      "Bash(git push origin main*)",
+      "Bash(git push origin HEAD:main*)",
+      "Bash(git push*main*)",
+      "Bash(git push --force*)",
+      "Bash(git push -f*)",
+      "Bash(git merge * main*)",
+      "Bash(git checkout main*)",
+      "Bash(git switch main*)",
+      "Bash(git reset --hard*)",
+      "Bash(git clean*)",
+      "Bash(psql*)",
+      "Bash(vercel*)",
+      "Bash(npx vercel*)",
+      "Bash(neonctl*)",
+      "Bash(npx neonctl*)",
+      "Read(./.env.local)",
+      "Read(./.env.local.*)"
+    ],
+    "allow": [
+      "Bash(npm run build)",
+      "Bash(npm run lint)",
+      "Bash(npm run typecheck)",
+      "Bash(npm run db:count)",
+      "Bash(git status*)",
+      "Bash(git diff*)",
+      "Bash(git log*)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git push origin mejoras)"
+    ]
+  }
+}
