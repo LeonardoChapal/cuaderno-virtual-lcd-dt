@@ -5,7 +5,7 @@ import Credentials from "next-auth/providers/credentials";
 import { authConfig } from "./auth.config";
 import { tryGetDb } from "./db";
 import { users } from "./db/schema";
-import { previewDiag, safeErrorMessage } from "./lib/diag";
+import { safeErrorMessage } from "./lib/diag";
 import { verifyPassword } from "./lib/password";
 
 /**
@@ -45,16 +45,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             return null;
           }
 
-          if (!record) {
-            previewDiag("authorize: usuario no encontrado en la base");
-            return null;
-          }
+          if (!record) return null;
           if (!(await verifyPassword(password, record.passwordHash))) {
-            previewDiag("authorize: la contraseña no coincide con el hash");
             return null;
           }
 
-          previewDiag("authorize: acceso correcto");
           return {
             id: record.id,
             name: record.name ?? record.username,
@@ -64,7 +59,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
         // Respaldo para desarrollo local antes de conectar la base de datos:
         // se comparan las credenciales contra las variables de entorno.
-        previewDiag("authorize: sin base de datos, se usa el respaldo de entorno");
         const envUser = process.env.ADMIN_USERNAME;
         const envPassword = process.env.ADMIN_PASSWORD;
         if (!envUser || !envPassword) return null;

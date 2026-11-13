@@ -8,7 +8,7 @@ import {
   type SectionSlug,
   type SubsectionSlug,
 } from "@/db/schema";
-import { previewDiag, safeErrorMessage } from "@/lib/diag";
+import { safeErrorMessage } from "@/lib/diag";
 
 /**
  * Todas las consultas degradan a lista vacía cuando aún no hay base de datos
@@ -29,29 +29,21 @@ export async function listPosts({
   planoSlug,
   includeUnpublished = false,
 }: ListOptions): Promise<PostWithMedia[]> {
-  const consulta = { section, subsection, planoSlug: planoSlug ?? null };
-
   const db = tryGetDb();
-  if (!db) {
-    previewDiag("listPosts sin base de datos", { ...consulta, postsDevueltos: 0 });
-    return [];
-  }
+  if (!db) return [];
 
   const filters = [eq(posts.section, section), eq(posts.subsection, subsection)];
   if (planoSlug) filters.push(eq(posts.planoSlug, planoSlug));
   if (!includeUnpublished) filters.push(eq(posts.published, true));
 
   try {
-    const rows = await db.query.posts.findMany({
+    return await db.query.posts.findMany({
       where: and(...filters),
       orderBy: [asc(posts.position), desc(posts.createdAt)],
       with: { media: { orderBy: [asc(postMedia.position)] } },
     });
-    previewDiag("listPosts", { ...consulta, postsDevueltos: rows.length });
-    return rows;
   } catch (error) {
     console.error("[posts] listPosts falló:", safeErrorMessage(error));
-    previewDiag("listPosts con error", { ...consulta, postsDevueltos: 0 });
     return [];
   }
 }
