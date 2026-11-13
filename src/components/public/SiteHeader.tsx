@@ -79,6 +79,28 @@ export default function SiteHeader() {
               </div>
             );
           })}
+
+          <Link
+            href="/buscar"
+            className={`flex h-full items-center gap-2 border-l border-blueline/25 px-5 py-2 font-display text-sm uppercase tracking-[0.1em] transition-colors ${
+              pathname.startsWith("/buscar")
+                ? "text-cyan"
+                : "text-graphite hover:text-chalk"
+            }`}
+          >
+            <svg
+              aria-hidden
+              viewBox="0 0 24 24"
+              className="h-4 w-4"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
+              <circle cx="11" cy="11" r="7" />
+              <path d="m20 20-4-4" />
+            </svg>
+            Buscar
+          </Link>
         </nav>
 
         {/* Botón de menú móvil */}
@@ -140,6 +162,15 @@ export default function SiteHeader() {
               </div>
             </div>
           ))}
+          <div className="py-4">
+            <Link
+              href="/buscar"
+              onClick={() => setOpen(false)}
+              className="font-display text-lg uppercase tracking-[0.08em] text-chalk"
+            >
+              Buscar
+            </Link>
+          </div>
         </nav>
       </div>
     </header>

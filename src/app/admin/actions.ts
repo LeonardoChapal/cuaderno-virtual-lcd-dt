@@ -58,6 +58,7 @@ function revalidateFor(
   if (!def) return;
 
   revalidatePath("/home");
+  revalidatePath("/buscar");
   revalidatePath(`/${def.slug}`);
   revalidatePath(`/${def.slug}/${subsection}`);
   if (subsection === "planos" && planoSlug) {

@@ -40,7 +40,7 @@ Revisión de todo `src/` (auth, acciones del panel, subida, sitio público, esti
 | C6 ✅ 2026-11-12 | **M1 visor:** lightbox con zoom, paneo y gestos táctiles (propuesta: `yet-another-react-lightbox` + plugin Zoom, va como D-006). Descarga con `?download=1` de Vercel Blob | Sonnet 5.5 · high |
 | C7 ✅ 2026-11-12 | **M2 rendimiento:** "fachada" de YouTube (miniatura + clic → iframe) con `youtubeThumbnail`, `formats: ['image/avif','image/webp']`, `preload="none"` en videos que no sean el primero, revisar `sizes` | Sonnet 5.5 · medium |
 | C8 ✅ 2026-11-12 | **M8 SEO:** `metadataBase` (desde `VERCEL_PROJECT_PRODUCTION_URL`), imagen OG generada (`opengraph-image`) y OG por plano con su portada, `sitemap.ts` y `robots.ts` **sin mencionar `/login`** (nombrarlo lo revelaría; ya tiene `noindex`) | Sonnet 5.5 · medium |
-| C9 | **M7 búsqueda:** página `/buscar` con filtro por sección y tipo en el cliente sobre los posts publicados (son pocos, no hace falta API). Va última: con 4 posts aporta poco | Sonnet 5.5 · medium |
+| C9 ✅ 2026-11-12 | **M7 búsqueda:** página `/buscar` con filtro por sección y tipo en el cliente sobre los posts publicados (son pocos, no hace falta API). Va última: con 4 posts aporta poco | Sonnet 5.5 · medium |
 
 ## Bloque D: orden de tareas
 | # | Tarea | Modelo · esfuerzo |

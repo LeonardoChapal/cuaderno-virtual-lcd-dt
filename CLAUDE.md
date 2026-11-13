@@ -271,7 +271,7 @@ Sustituye al plan original de fases 0–7. Modelo y esfuerzo recomendados por bl
 - Revisar todo el código (bugs, seguridad, rendimiento, accesibilidad, deuda) y escribir **una sola página** en `docs/PLAN.md` con hallazgos priorizados. **Sin código.**
 - **Terminado cuando:** apruebo `PLAN.md`.
 
-### Bloque C — Todo lo que no toca la base · Sonnet 5.5 · `high` · sin plan mode, **un commit por mejora**
+### Bloque C — Todo lo que no toca la base · Sonnet 5.5 · `high` · sin plan mode, **un commit por mejora** · C1–C9 implementados 2026-11-12 (falta el visto bueno de las pruebas 🌐)
 - Correcciones de la auditoría (Bloque B).
 - Visor de planchas con zoom, paneo y botón de descarga (M1).
 - Rendimiento de medios: imágenes optimizadas, carga diferida de videos, tamaños correctos (M2).
@@ -353,4 +353,4 @@ Sustituye al plan original de fases 0–7. Modelo y esfuerzo recomendados por bl
 
 ## 18. Primer paso
 
-Los Bloques A y B están terminados. Siguiente: **Bloque C**, en el orden de `docs/PLAN.md` (C1 con Opus 5.5 · `high`). P0-4 resuelto el 2026-11-12: el preview de `mejoras` usa `dev-mejoras` y `cuaderno-dev` (ver §3.7).
+Los Bloques A y B están terminados y el Bloque C está implementado (C1–C9, 2026-11-12), pendiente del visto bueno de las pruebas 🌐 en el preview. Siguiente: **Bloque D**, en el orden de `docs/PLAN.md` (D0 es un requisito tuyo: confirmar que `.env.local` usa el Blob de desarrollo). P0-4 resuelto el 2026-11-12: el preview de `mejoras` usa `dev-mejoras` y `cuaderno-dev` (ver §3.7).

@@ -79,3 +79,20 @@ export async function getPostById(id: string): Promise<PostWithMedia | null> {
     return null;
   }
 }
+
+/** Todas las publicaciones visibles, para la búsqueda del sitio público. */
+export async function listPublishedPosts(): Promise<PostWithMedia[]> {
+  const db = tryGetDb();
+  if (!db) return [];
+
+  try {
+    return await db.query.posts.findMany({
+      where: eq(posts.published, true),
+      orderBy: [desc(posts.createdAt)],
+      with: { media: { orderBy: [asc(postMedia.position)] } },
+    });
+  } catch (error) {
+    console.error("[posts] listPublishedPosts falló:", safeErrorMessage(error));
+    return [];
+  }
+}
