@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import PageHeader from "@/components/public/PageHeader";
+import { pageMetadata } from "@/lib/seo";
 import { SECTIONS, getSection, getSubsections, subsectionHref } from "@/lib/site";
 
 type Params = { section: string };
@@ -18,7 +19,11 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const section = getSection((await params).section);
   if (!section) return {};
-  return { title: section.title, description: section.description };
+  return pageMetadata({
+    title: section.title,
+    description: section.description,
+    path: `/${section.slug}`,
+  });
 }
 
 export default async function SectionPage({

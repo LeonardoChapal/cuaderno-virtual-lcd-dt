@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import SubsectionView from "@/components/public/SubsectionView";
+import { pageMetadata } from "@/lib/seo";
 import { SECTIONS, getSection, getSubsection } from "@/lib/site";
 
 // Red de seguridad: aunque las acciones del panel llaman a revalidatePath,
@@ -21,10 +22,11 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const section = getSection((await params).section);
   if (!section) return {};
-  return {
+  return pageMetadata({
     title: `${getSubsection("videos").title} · ${section.title}`,
     description: getSubsection("videos").blurb,
-  };
+    path: `/${section.slug}/videos`,
+  });
 }
 
 export default async function VideosPage({

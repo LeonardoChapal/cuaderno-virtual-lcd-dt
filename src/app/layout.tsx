@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Archivo_Narrow, IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
 
+import { siteUrl } from "@/lib/seo";
 import { site } from "@/lib/site";
 
 import "./globals.css";
@@ -30,6 +31,8 @@ const plexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
+  // Hace absolutas las URLs de la vista previa al compartir y las canónicas.
+  metadataBase: new URL(siteUrl()),
   title: {
     default: `${site.name} · ${site.subject}`,
     template: `%s · ${site.name}`,
@@ -39,9 +42,11 @@ export const metadata: Metadata = {
   openGraph: {
     title: `${site.name} · ${site.subject}`,
     description: `Cuaderno virtual de ${site.subject} — ${site.school}.`,
+    siteName: site.name,
     locale: "es_CO",
     type: "website",
   },
+  twitter: { card: "summary_large_image" },
   robots: {
     index: true,
     follow: true,

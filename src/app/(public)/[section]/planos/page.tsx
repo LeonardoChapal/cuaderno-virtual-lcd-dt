@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import PlanosIndex from "@/components/public/PlanosIndex";
+import { pageMetadata } from "@/lib/seo";
 import { SECTIONS, getSection, getSubsection } from "@/lib/site";
 
 // Red de seguridad: aunque las acciones del panel llaman a revalidatePath,
@@ -21,10 +22,11 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const section = getSection((await params).section);
   if (!section) return {};
-  return {
+  return pageMetadata({
     title: `${getSubsection("planos").title} · ${section.title}`,
     description: `Láminas y proyectos de ${section.title}.`,
-  };
+    path: `/${section.slug}/planos`,
+  });
 }
 
 /**

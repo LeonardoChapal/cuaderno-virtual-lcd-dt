@@ -1,11 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { cache } from "react";
 
 import EmptyState from "@/components/public/EmptyState";
 import PageHeader from "@/components/public/PageHeader";
 import PostCard from "@/components/public/PostCard";
+import type { SectionSlug } from "@/db/schema";
 import { listPosts } from "@/lib/posts";
+import { pageMetadata, sharePreviewImage } from "@/lib/seo";
 import {
   SECTIONS,
   getPlano,
@@ -19,6 +22,12 @@ import {
 export const revalidate = 600;
 
 type Params = { section: string; plano: string };
+
+// generateMetadata y la página piden los mismos posts: `cache` hace una sola
+// consulta a la base por petición.
+const getPlanoPosts = cache((section: SectionSlug, planoSlug: string) =>
+  listPosts({ section, subsection: "planos", planoSlug }),
+);
 
 export function generateStaticParams(): Params[] {
   return SECTIONS.flatMap((section) =>
@@ -39,10 +48,23 @@ export async function generateMetadata({
   const plano = section && getPlano(section, planoSlug);
   if (!section || !plano) return {};
 
-  return {
+  // Vista previa al compartir: la primera plancha (imagen) de este plano.
+  const posts = await getPlanoPosts(section.value, plano.slug);
+  const cover = posts
+    .flatMap((post) => post.media)
+    .find((item) => item.type === "image");
+
+  return pageMetadata({
     title: `${plano.title} · ${section.title}`,
     description: plano.blurb,
-  };
+    path: `/${section.slug}/planos/${plano.slug}`,
+    image: cover
+      ? {
+          url: sharePreviewImage(cover.url),
+          alt: `Plancha de ${plano.title} · ${section.title}`,
+        }
+      : undefined,
+  });
 }
 
 export default async function PlanoPage({
@@ -57,11 +79,7 @@ export default async function PlanoPage({
   const plano = getPlano(section, planoSlug);
   if (!plano) notFound();
 
-  const posts = await listPosts({
-    section: section.value,
-    subsection: "planos",
-    planoSlug: plano.slug,
-  });
+  const posts = await getPlanoPosts(section.value, plano.slug);
 
   const siblings = section.planos.filter((item) => item.slug !== plano.slug);
 

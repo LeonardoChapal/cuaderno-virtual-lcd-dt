@@ -4,12 +4,14 @@ import Link from "next/link";
 import DimensionLine from "@/components/public/DimensionLine";
 import HeroBlueprint from "@/components/public/HeroBlueprint";
 import SectionPanel from "@/components/public/SectionPanel";
+import { pageMetadata } from "@/lib/seo";
 import { SECTIONS, site } from "@/lib/site";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: "Índice",
   description: `Cuaderno virtual de ${site.subject} — planos, consultas y videos de apoyo. ${site.school}.`,
-};
+  path: "/home",
+});
 
 export default function HomePage() {
   const totalPlanos = SECTIONS.reduce(
